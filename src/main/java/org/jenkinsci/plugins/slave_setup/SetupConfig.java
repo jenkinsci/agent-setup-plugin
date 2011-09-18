@@ -1,8 +1,12 @@
 package org.jenkinsci.plugins.slave_setup;
 
 import hudson.Extension;
+import hudson.Util;
+import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.File;
@@ -14,27 +18,28 @@ import java.io.File;
  */
 @Extension
 public class SetupConfig extends GlobalConfiguration {
-    private File scriptDir;
+    private File filesDir;
     private String commandLine;
 
     public SetupConfig() {
         load();
     }
 
-    public File getScriptDir() {
-        return scriptDir;
+    public File getFilesDir() {
+        return filesDir;
     }
 
     public String getCommandLine() {
         return commandLine;
     }
 
-    public void setScriptDir(File scriptDir) {
-        this.scriptDir = scriptDir;
+    public void setFilesDir(File filesDir) {
+        if (filesDir.getPath().length()==0)     filesDir=null;
+        this.filesDir = filesDir;
     }
 
     public void setCommandLine(String commandLine) {
-        this.commandLine = commandLine;
+        this.commandLine = Util.fixEmpty(commandLine);
     }
 
     @Override
@@ -46,5 +51,14 @@ public class SetupConfig extends GlobalConfiguration {
 
     public static SetupConfig get() {
         return GlobalConfiguration.all().get(SetupConfig.class);
+    }
+
+    public FormValidation doCheckFilesDir(@QueryParameter String value) {
+        Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
+        if (Util.fixEmpty(value)==null)
+            return FormValidation.ok(); // no value
+        if (!new File(value).isDirectory())
+            return FormValidation.error("Directory "+value+" doesn't exist");
+        return FormValidation.ok();
     }
 }

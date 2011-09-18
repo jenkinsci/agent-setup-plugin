@@ -13,6 +13,7 @@ import hudson.slaves.ComputerListener;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.tasks.Shell;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -23,23 +24,27 @@ public class ComputerListenerImpl extends ComputerListener {
     @Override
     public void preOnline(Computer c, Channel channel, FilePath root, TaskListener listener) throws IOException, InterruptedException {
         SetupConfig config = SetupConfig.get();
-        if (config.getScriptDir()==null || config.getCommandLine()==null)      return;
 
-        listener.getLogger().println("Copying setup script files");
-        FilePath target = root.child("slave_setup");
-        new FilePath(config.getScriptDir()).copyRecursiveTo(target);
+        File sd = config.getFilesDir();
+        if (sd!=null) {
+            listener.getLogger().println("Copying setup script files");
+            new FilePath(sd).copyRecursiveTo(root);
+        }
 
-        listener.getLogger().println("Executing setup script");
-        Node node = c.getNode();
-        Launcher launcher = target.createLauncher(listener);
-        Shell s = new Shell(config.getCommandLine());
-        FilePath script = s.createScriptFile(root);
-        int r = launcher.launch().cmds(s.buildCommandLine(script)).envs(getEnvironment(node)).stdout(listener).pwd(target).join();
+        String cmdLine = config.getCommandLine();
+        if (cmdLine!=null) {
+            listener.getLogger().println("Executing setup script");
+            Node node = c.getNode();
+            Launcher launcher = root.createLauncher(listener);
+            Shell s = new Shell(cmdLine);
+            FilePath script = s.createScriptFile(root);
+            int r = launcher.launch().cmds(s.buildCommandLine(script)).envs(getEnvironment(node)).stdout(listener).pwd(root).join();
 
-        if (r!=0)
-            throw new AbortException("Setup script failed");
+            if (r!=0)
+                throw new AbortException("Setup script failed");
 
-        listener.getLogger().println("Setup script completed successfully");
+            listener.getLogger().println("Setup script completed successfully");
+        }
     }
 
     private EnvVars getEnvironment(Node node) {
