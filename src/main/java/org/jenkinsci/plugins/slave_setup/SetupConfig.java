@@ -20,6 +20,7 @@ import java.io.File;
 public class SetupConfig extends GlobalConfiguration {
     private File filesDir;
     private String commandLine;
+    private boolean deployNow;
 
     public SetupConfig() {
         load();
@@ -32,6 +33,10 @@ public class SetupConfig extends GlobalConfiguration {
     public String getCommandLine() {
         return commandLine;
     }
+    
+    public boolean getDeployNow() {
+        return this.deployNow;
+    }
 
     public void setFilesDir(File filesDir) {
         if (filesDir.getPath().length()==0)     filesDir=null;
@@ -40,6 +45,13 @@ public class SetupConfig extends GlobalConfiguration {
 
     public void setCommandLine(String commandLine) {
         this.commandLine = Util.fixEmpty(commandLine);
+    }
+    
+    public void setDeployNow(boolean deployNow) {
+        this.deployNow = deployNow;
+        if(this.deployNow) {
+            System.out.println("Deploy Now !!!");
+        }
     }
 
     @Override
