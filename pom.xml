@@ -1,34 +1,39 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.jenkins-ci.plugins</groupId>
-    <artifactId>plugin</artifactId>
-    <version>1.430</version>
-  </parent>
-  
-  <artifactId>slave-setup</artifactId>
-  <packaging>hpi</packaging>
-  <name>Jenkins Slave SetupPlugin</name>
-  <url>http://wiki.jenkins-ci.org/display/JENKINS/Slave+Setup+Plugin</url>
-  <version>1.1-SNAPSHOT</version>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>1.430</version>
+    </parent>
 
-  <developers>
-    <developer>
-      <id>kohsuke</id>
-      <name>Kohsuke Kawaguchi</name>
-    </developer>
-  </developers>
+    <artifactId>slave-setup</artifactId>
+    <packaging>hpi</packaging>
+    <name>Jenkins Slave SetupPlugin</name>
+    <url>http://wiki.jenkins-ci.org/display/JENKINS/Slave+Setup+Plugin</url>
+    <version>1.2-SNAPSHOT</version>
 
-  <scm>
-    <connection>scm:git:git://github.com/jenkinsci/slave-setup-plugin.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/slave-setup-plugin.git</developerConnection>
-    <url>http://github.com/jenkinsci/slave-setup-plugin</url>
-  </scm>
+    <developers>
+        <developer>
+            <id>kohsuke</id>
+            <name>Kohsuke Kawaguchi</name>
+        </developer>
+        <developer>
+            <id>ffromm</id>
+            <name>Frederik Fromm</name>
+        </developer>
+    </developers>
 
-  <repositories>
-    <repository>
-      <id>m.g.o-public</id>
-      <url>http://maven.glassfish.org/content/groups/public/</url>
-    </repository>
-  </repositories>
+    <scm>
+        <connection>scm:git:git://github.com/jenkinsci/slave-setup-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:jenkinsci/slave-setup-plugin.git</developerConnection>
+        <url>http://github.com/jenkinsci/slave-setup-plugin</url>
+    </scm>
+
+    <repositories>
+        <repository>
+            <id>m.g.o-public</id>
+            <url>http://maven.glassfish.org/content/groups/public/</url>
+        </repository>
+    </repositories>
 </project>

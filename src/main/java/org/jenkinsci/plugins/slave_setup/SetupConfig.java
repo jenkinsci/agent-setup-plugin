@@ -1,8 +1,13 @@
 package org.jenkinsci.plugins.slave_setup;
 
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Util;
+import hudson.model.Computer;
+import hudson.model.Hudson;
+import hudson.model.TaskListener;
 import hudson.util.FormValidation;
+import hudson.util.LogTaskListener;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -10,6 +15,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * Keeps track of the configuration of slave_setup execution.
@@ -49,15 +55,21 @@ public class SetupConfig extends GlobalConfiguration {
     
     public void setDeployNow(boolean deployNow) {
         this.deployNow = deployNow;
-        if(this.deployNow) {
-            System.out.println("Deploy Now !!!");
-        }
     }
 
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
         req.bindJSON(this,json);
         save();
+
+        if(this.deployNow) {
+            SetupDeployer deployer = new SetupDeployer();
+            
+            List<Computer> allActiveSlaves = deployer.getAllActiveSlaves();
+
+            deployer.deployToComputers(allActiveSlaves, this);
+        }
+
         return true;
     }
 
@@ -73,4 +85,6 @@ public class SetupConfig extends GlobalConfiguration {
             return FormValidation.error("Directory "+value+" doesn't exist");
         return FormValidation.ok();
     }
+
+
 }
