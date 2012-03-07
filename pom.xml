@@ -25,7 +25,7 @@
 
     <scm>
         <connection>scm:git:git://github.com/jenkinsci/slave-setup-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:jenkinsci/slave-setup-plugin.git</developerConnection>
+        <developerConnection>scm:git:git@github.com/jenkinsci/slave-setup-plugin.git</developerConnection>
         <url>http://github.com/jenkinsci/slave-setup-plugin</url>
     </scm>
 
