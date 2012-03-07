@@ -4,19 +4,20 @@ import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
-import hudson.model.Computer;
-import hudson.model.Node;
-import hudson.model.TaskListener;
+import hudson.model.*;
+import hudson.model.labels.LabelAtom;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.tasks.Shell;
 import hudson.util.LogTaskListener;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -86,8 +87,20 @@ public class SetupDeployer {
      * @param config the SetupConfig object
      */
     public void deployToComputers(List<Computer> computerList, SetupConfig config) {
+        Label label = null;
+
+        if(StringUtils.isNotBlank(config.getAssignedLabelString())) {
+            label = Label.get(config.getAssignedLabelString());
+        }
+        
         for (Computer computer : computerList) {
             try {
+                if(label != null) {
+                    if(!label.contains(computer.getNode())) {
+                        continue;
+                    }
+                }
+
                 FilePath root = computer.getNode().getRootPath();
                 LogTaskListener listener = new LogTaskListener(LOGGER, Level.ALL);
                 this.deployToComputer(computer, root, listener, config);

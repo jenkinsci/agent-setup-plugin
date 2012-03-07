@@ -16,7 +16,30 @@ f.section(title: _("Slave setup script")) {
         f.checkbox()
     }
 
+    if(app.labels.size() > 1 || app.clouds.size() > 0) {
+        f.entry(title: _("Label Expression"), field: "assignedLabelString") {
+            f.textbox([autoCompleteDelimChar: " "])
+        }
+    }
+
+
     f.block("<b>(ATTENTION, slaves should be of one kind of System " +
                 "as there is only one script for all!)</b>")
 
 }
+
+/*
+  <!-- master/slave -->
+  <j:if test="${app.assignedLabelString.size() gt 1 || app.clouds.size() gt 0 || (it.assignedLabel!=null and it.assignedLabel!=app.selfLabel)}">
+    <f:optionalBlock name="hasSlaveAffinity" title="${%Restrict where this project can be run}" checked="${it.assignedLabel!=null}"
+        help="/help/project-config/slave.html">
+      <f:entry title="${%Label Expression}" field="assignedLabelString">
+        <f:textbox autoCompleteDelimChar=" "/>
+      </f:entry>
+    </f:optionalBlock>
+  </j:if>
+
+
+
+
+*/

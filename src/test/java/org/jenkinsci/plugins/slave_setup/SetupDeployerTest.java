@@ -1,12 +1,12 @@
 package org.jenkinsci.plugins.slave_setup;
 
+import hudson.EnvVars;
 import hudson.FilePath;
-import hudson.model.Computer;
-import hudson.model.Messages;
-import hudson.model.Node;
-import hudson.model.TaskListener;
+import hudson.model.*;
+import hudson.model.labels.LabelAtom;
 import hudson.slaves.DumbSlave;
 import hudson.slaves.OfflineCause;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.hudson.test.HudsonTestCase;
@@ -32,9 +32,14 @@ public class SetupDeployerTest extends HudsonTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         this.slaves = new ArrayList<DumbSlave>();
-        this.slaves.add(this.createOnlineSlave());
-        this.slaves.add(this.createOnlineSlave());
-        this.slaves.add(this.createOnlineSlave());
+
+        Label label1 = new LabelAtom("foo");
+        Label label2 = new LabelAtom("foo || bar");
+        Label label3 = new LabelAtom("bar");
+        
+        this.slaves.add(this.createOnlineSlave(label1));
+        this.slaves.add(this.createOnlineSlave(label2));
+        this.slaves.add(this.createOnlineSlave(label3));
     }
 
     @Test
@@ -89,7 +94,7 @@ public class SetupDeployerTest extends HudsonTestCase {
 
         try {
 
-            setupDeployer.deployToComputer(slave, root, taskListener, createConfig());
+            setupDeployer.deployToComputer(slave, root, taskListener, createConfig(null));
             FilePath[] files = slave.getNode().getRootPath().list("setup.txt");
             assertEquals(1, files.length);
 
@@ -105,18 +110,45 @@ public class SetupDeployerTest extends HudsonTestCase {
 
     @Test
     public void testDeployToComputers() {
+
         SetupDeployer setupDeployer = new SetupDeployer();
         List<Computer> activeSlaves = setupDeployer.getAllActiveSlaves();
 
-        TaskListener taskListener = this.createTaskListener();
-
-        setupDeployer.deployToComputers(activeSlaves, createConfig());
+        setupDeployer.deployToComputers(activeSlaves, createConfig(null));
 
         for (Computer activeSlave : activeSlaves) {
             try {
-
                 FilePath[] files = activeSlave.getNode().getRootPath().list("setup.txt");
+
                 assertEquals(1, files.length);
+            } catch (IOException e) {
+                e.printStackTrace();
+                fail(e.getMessage());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                fail(e.getMessage());
+            }
+        }
+    }
+
+    @Test
+    public void testDeployToComputers2() {
+
+        SetupDeployer setupDeployer = new SetupDeployer();
+        List<Computer> activeSlaves = setupDeployer.getAllActiveSlaves();
+        Label fooLabel = Label.get("foo");
+
+        setupDeployer.deployToComputers(activeSlaves, createConfig("foo"));
+
+        for (Computer activeSlave : activeSlaves) {
+            try {
+                FilePath[] files = activeSlave.getNode().getRootPath().list("setup.txt");
+
+                if(activeSlave.getNode().getAssignedLabels().contains(fooLabel)) {
+                    assertEquals(1, files.length);
+                } else {
+                    assertEquals(0, files.length);
+                }
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -128,11 +160,14 @@ public class SetupDeployerTest extends HudsonTestCase {
         }
     }
 
-    private SetupConfig createConfig() {
+    private SetupConfig createConfig(String label) {
         SetupConfig setupConfig = new SetupConfig();
         File setupFiles = new File("src/test/resources/files");
         assertTrue(setupFiles.canRead() && setupFiles.isDirectory());
         setupConfig.setFilesDir(setupFiles);
+        if(StringUtils.isNotBlank(label)) {
+            setupConfig.setAssignedLabelString(label);
+        }
         return setupConfig;
     }
 }
