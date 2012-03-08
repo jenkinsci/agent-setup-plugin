@@ -60,6 +60,17 @@ public class SetupDeployer {
      * @throws InterruptedException
      */
     public void deployToComputer(Computer c, FilePath root, TaskListener listener, SetupConfig config) throws IOException, InterruptedException {
+        //do not deploy if label of computer and config do not match.
+        if(StringUtils.isNotBlank(config.getAssignedLabelString())) {
+            Label label = Label.get(config.getAssignedLabelString());
+
+            if(label != null) {
+                if(!label.contains(c.getNode())) {
+                    return;
+                }
+            }
+        }
+
         File sd = config.getFilesDir();
         if (sd != null) {
             listener.getLogger().println("Copying setup script files");
@@ -87,20 +98,8 @@ public class SetupDeployer {
      * @param config the SetupConfig object
      */
     public void deployToComputers(List<Computer> computerList, SetupConfig config) {
-        Label label = null;
-
-        if(StringUtils.isNotBlank(config.getAssignedLabelString())) {
-            label = Label.get(config.getAssignedLabelString());
-        }
-        
         for (Computer computer : computerList) {
             try {
-                if(label != null) {
-                    if(!label.contains(computer.getNode())) {
-                        continue;
-                    }
-                }
-
                 FilePath root = computer.getNode().getRootPath();
                 LogTaskListener listener = new LogTaskListener(LOGGER, Level.ALL);
                 this.deployToComputer(computer, root, listener, config);
