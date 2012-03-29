@@ -5,12 +5,11 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.model.*;
 import hudson.model.labels.LabelAtom;
-import hudson.model.labels.LabelExpression;
 import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
+import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -26,79 +25,49 @@ import java.util.Set;
  */
 @Extension
 public class SetupConfig extends GlobalConfiguration {
-    private File filesDir;
-    private String commandLine;
-    private boolean deployNow;
-    private String assignedLabelString;
 
+    private List<SetupConfigItem> setupConfigItems = new ArrayList<SetupConfigItem>();
+    
     public SetupConfig() {
         load();
     }
 
-    public File getFilesDir() {
-        return filesDir;
+    public List<SetupConfigItem> getSetupConfigItems() {
+        System.out.println("getSetupConfigItems: " + setupConfigItems);
+        return setupConfigItems;
     }
 
-    public String getCommandLine() {
-        return commandLine;
-    }
+    public void setSetupConfigItems(List<SetupConfigItem> setupConfigItems) {
+        System.out.println("setSetupConfigItems" + setupConfigItems);
+        this.setupConfigItems = setupConfigItems;
+    }   
+
     
-    public boolean getDeployNow() {
-        return this.deployNow;
-    }
-
-    public void setFilesDir(File filesDir) {
-        if (filesDir.getPath().length()==0)     filesDir=null;
-        this.filesDir = filesDir;
-    }
-
-    public void setCommandLine(String commandLine) {
-        this.commandLine = Util.fixEmpty(commandLine);
-    }
-    
-    public void setDeployNow(boolean deployNow) {
-        this.deployNow = deployNow;
-    }
-
-    /**
-     * Gets the textual representation of the assigned label as it was entered by the user.
-     */
-    public String getAssignedLabelString() {
-        if(StringUtils.isEmpty(this.assignedLabelString)) {
-            return "";
-        }
-
-        try {
-            LabelExpression.parseExpression(this.assignedLabelString);
-            return this.assignedLabelString;
-        } catch (ANTLRException e) {
-            // must be old label or host name that includes whitespace or other unsafe chars
-            return LabelAtom.escape(this.assignedLabelString);
-        }
-    }
-    public void setAssignedLabelString(String assignedLabelString) {
-        this.assignedLabelString = assignedLabelString;
-    }
-
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
         req.bindJSON(this,json);
         save();
 
-        if(this.deployNow) {
+        /*
+        if(this.setupConfigItems.get(0).getDeployNow()) {
             SetupDeployer deployer = new SetupDeployer();
             
             List<Computer> allActiveSlaves = deployer.getAllActiveSlaves();
 
             deployer.deployToComputers(allActiveSlaves, this);
         }
-
+          */
         return true;
     }
 
     public static SetupConfig get() {
         return GlobalConfiguration.all().get(SetupConfig.class);
     }
+
+    /*
+     * form validations...
+     *
+     */
 
     public AutoCompletionCandidates doAutoCompleteAssignedLabelString(@QueryParameter String value) {
         AutoCompletionCandidates c = new AutoCompletionCandidates();
@@ -186,4 +155,6 @@ public class SetupConfig extends GlobalConfiguration {
             return terms;
         }
     }
+
+    
 }

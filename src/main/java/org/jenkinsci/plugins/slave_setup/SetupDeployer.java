@@ -60,37 +60,42 @@ public class SetupDeployer {
      * @throws InterruptedException
      */
     public void deployToComputer(Computer c, FilePath root, TaskListener listener, SetupConfig config) throws IOException, InterruptedException {
-        //do not deploy if label of computer and config do not match.
-        if(StringUtils.isNotBlank(config.getAssignedLabelString())) {
-            Label label = Label.get(config.getAssignedLabelString());
+        List<SetupConfigItem> setupConfigItems = config.getSetupConfigItems();
 
-            if(label != null) {
-                if(!label.contains(c.getNode())) {
-                    return;
+        for (SetupConfigItem setupConfigItem : setupConfigItems) {
+            //do not deploy if label of computer and config do not match.
+            if(StringUtils.isNotBlank(setupConfigItem.getAssignedLabelString())) {
+                Label label = Label.get(setupConfigItem.getAssignedLabelString());
+
+                if(label != null) {
+                    if(!label.contains(c.getNode())) {
+                        return;
+                    }
                 }
+            }
+
+            File sd = setupConfigItem.getFilesDir();
+            if (sd != null) {
+                listener.getLogger().println("Copying setup script files");
+                new FilePath(sd).copyRecursiveTo(root);
+            }
+
+            String cmdLine = setupConfigItem.getCommandLine();
+            if (cmdLine != null) {
+                listener.getLogger().println("Executing setup script");
+                Node node = c.getNode();
+                Launcher launcher = root.createLauncher(listener);
+                Shell s = new Shell(cmdLine);
+                FilePath script = s.createScriptFile(root);
+                int r = launcher.launch().cmds(s.buildCommandLine(script)).envs(getEnvironment(node)).stdout(listener).pwd(root).join();
+
+                if (r != 0)
+                    throw new AbortException("Setup script failed");
+
+                listener.getLogger().println("Setup script completed successfully");
             }
         }
 
-        File sd = config.getFilesDir();
-        if (sd != null) {
-            listener.getLogger().println("Copying setup script files");
-            new FilePath(sd).copyRecursiveTo(root);
-        }
-
-        String cmdLine = config.getCommandLine();
-        if (cmdLine != null) {
-            listener.getLogger().println("Executing setup script");
-            Node node = c.getNode();
-            Launcher launcher = root.createLauncher(listener);
-            Shell s = new Shell(cmdLine);
-            FilePath script = s.createScriptFile(root);
-            int r = launcher.launch().cmds(s.buildCommandLine(script)).envs(getEnvironment(node)).stdout(listener).pwd(root).join();
-
-            if (r != 0)
-                throw new AbortException("Setup script failed");
-
-            listener.getLogger().println("Setup script completed successfully");
-        }
     }
 
     /**

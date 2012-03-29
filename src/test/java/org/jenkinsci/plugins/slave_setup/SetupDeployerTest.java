@@ -164,10 +164,17 @@ public class SetupDeployerTest extends HudsonTestCase {
         SetupConfig setupConfig = new SetupConfig();
         File setupFiles = new File("src/test/resources/files");
         assertTrue(setupFiles.canRead() && setupFiles.isDirectory());
-        setupConfig.setFilesDir(setupFiles);
+        SetupConfigItem item = new SetupConfigItem();
+        item.setFilesDir(setupFiles);
         if(StringUtils.isNotBlank(label)) {
-            setupConfig.setAssignedLabelString(label);
+            item.setAssignedLabelString(label);
         }
+        
+        List<SetupConfigItem> setupConfigItems = new ArrayList<SetupConfigItem>();
+        setupConfigItems.add(item);
+
+        setupConfig.setSetupConfigItems(setupConfigItems);
+
         return setupConfig;
     }
 }
