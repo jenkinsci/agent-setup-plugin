@@ -21,6 +21,16 @@ import java.io.IOException;
  */
 @Extension
 public class ComputerListenerImpl extends ComputerListener {
+
+    /**
+     * Prepares the slave before it gets online by copying the given content in root and executing the configured setup script.
+     * @param c the computer to set up
+     * @param channel not used
+     * @param root the root of the slave
+     * @param listener log listener
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @Override
     public void preOnline(Computer c, Channel channel, FilePath root, TaskListener listener) throws IOException, InterruptedException {
         SetupConfig config = SetupConfig.get();
