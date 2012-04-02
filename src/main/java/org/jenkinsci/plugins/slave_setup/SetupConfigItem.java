@@ -9,18 +9,49 @@ import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
 
+/**
+ * Represents a setup config for one set of labels. It may have its own prepare script, files to copy and command line.
+ */
 public class SetupConfigItem {
-    
+
+
+    /**
+     * the prepare script code
+     */
     private String prepareScript;
+
+    /**
+     * the directory to get the content to copy from
+     */
     private File filesDir;
+
+    /**
+     * the command line code
+     */
     private String commandLine;
+
+    /**
+     * set to true to execute setup script on save of the main jenkins configuration page
+     */
     private boolean deployNow;
+
+    /**
+     * jenkins label to be assigned to this setup config
+     */
     private String assignedLabelString;
 
+    /**
+     * Constructor uesd to create the setup config instance
+     * @param prepareScript
+     * @param filesDir
+     * @param commandLine
+     * @param deployNow
+     * @param assignedLabelString
+     */
     @DataBoundConstructor
     public SetupConfigItem(String prepareScript, File filesDir, String commandLine, boolean deployNow, String assignedLabelString) {
         this.prepareScript = prepareScript;
-        this.filesDir = filesDir;        
+        this.filesDir = filesDir;
         this.commandLine = commandLine;
         this.deployNow = deployNow;
         this.assignedLabelString = assignedLabelString;
@@ -50,7 +81,10 @@ public class SetupConfigItem {
     }
 
     public void setFilesDir(File filesDir) {
-        if (filesDir.getPath().length() == 0) filesDir = null;
+        if (filesDir.getPath().length() == 0) {
+            filesDir = null;
+        }
+
         this.filesDir = filesDir;
     }
 

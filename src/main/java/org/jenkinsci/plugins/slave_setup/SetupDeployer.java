@@ -69,10 +69,10 @@ public class SetupDeployer {
     }
 
     /**
-     * @param c        the computer to upload th files to
-     * @param root     the computer's target directory
-     * @param listener the listener for logging etc.
-     * @param setupConfigItem   the SetupConfigItem object containing the source dir and the command line
+     * @param c               the computer to upload th files to
+     * @param root            the computer's target directory
+     * @param listener        the listener for logging etc.
+     * @param setupConfigItem the SetupConfigItem object containing the source dir and the command line
      * @throws IOException
      * @throws InterruptedException
      */
@@ -82,23 +82,25 @@ public class SetupDeployer {
         if (StringUtils.isNotBlank(setupConfigItem.getAssignedLabelString())) {
             Label label = Label.get(setupConfigItem.getAssignedLabelString());
 
-            if (label != null) {
-                if (!label.contains(c.getNode())) {
-                    return;
-                }
+            if (label != null && !label.contains(c.getNode())) {
+                return;
             }
         }
 
         // copy files
         File sd = setupConfigItem.getFilesDir();
-        if (sd != null) {
+        if (sd != null)
+
+        {
             listener.getLogger().println("Copying setup script files");
             new FilePath(sd).copyRecursiveTo(root);
         }
 
         // execute command line
         String cmdLine = setupConfigItem.getCommandLine();
+
         executeScript(c, root, listener, cmdLine);
+
     }
 
     private void executeScript(Computer c, FilePath root, TaskListener listener, String cmdLine) throws IOException, InterruptedException {
@@ -119,8 +121,8 @@ public class SetupDeployer {
     }
 
     /**
-     * @param computerList the list of computers to upload the setup files and execute command line
-     * @param setupConfigItem       the SetupConfigItem object
+     * @param computerList    the list of computers to upload the setup files and execute command line
+     * @param setupConfigItem the SetupConfigItem object
      */
     public void deployToComputers(List<Computer> computerList, SetupConfigItem setupConfigItem) {
         for (Computer computer : computerList) {
@@ -156,6 +158,7 @@ public class SetupDeployer {
 
     /**
      * Returns 0 if all prepare scripts were executes without error.
+     *
      * @return 0 if all prepare scripts were executes without error
      */
     public int executePrepareScripts(SetupConfig config, TaskListener listener) {
@@ -167,7 +170,7 @@ public class SetupDeployer {
             try {
                 FilePath filePath = new FilePath(setupConfigItem.getFilesDir());
                 this.executeScript(computer, filePath, listener, setupConfigItem.getPrepareScript());
-            } catch(Exception e) {
+            } catch (Exception e) {
                 returnCode++; // increment return code;
             }
         }

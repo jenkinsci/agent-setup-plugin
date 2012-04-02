@@ -10,7 +10,6 @@ import hudson.util.LogTaskListener;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
-import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -94,22 +93,31 @@ public class SetupConfig extends GlobalConfiguration {
     public FormValidation doCheckFilesDir(@QueryParameter String value) {
         Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
         if (Util.fixEmpty(value)==null)
+        {
             return FormValidation.ok(); // no value
-        if (!new File(value).isDirectory())
+        }
+
+        if (!new File(value).isDirectory()) {
             return FormValidation.error("Directory "+value+" doesn't exist");
+        }
+
         return FormValidation.ok();
     }
 
     public FormValidation doCheckAssignedLabelString(@QueryParameter String value) {
-        if (Util.fixEmpty(value)==null)
+        if (Util.fixEmpty(value)==null) {
             return FormValidation.ok(); // nothing typed yet
+        }
+
         try {
             Label.parseExpression(value);
         } catch (ANTLRException e) {
             return FormValidation.error(e,
                     Messages.AbstractProject_AssignedLabelString_InvalidBooleanExpression(e.getMessage()));
         }
+
         Label l = Jenkins.getInstance().getLabel(value);
+
         if (l.isEmpty()) {
             for (LabelAtom a : l.listAtoms()) {
                 if (a.isEmpty()) {
@@ -162,6 +170,4 @@ public class SetupConfig extends GlobalConfiguration {
             return terms;
         }
     }
-
-    
 }
