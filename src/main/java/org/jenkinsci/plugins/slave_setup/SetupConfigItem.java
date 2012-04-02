@@ -57,29 +57,56 @@ public class SetupConfigItem {
         this.assignedLabelString = assignedLabelString;
     }
 
+    /**
+     * Default constructor
+     */
     public SetupConfigItem() {
     }
 
+    /**
+     * Returns the prepare script code.
+     * @return the prepare script code
+     */
     public String getPrepareScript() {
         return prepareScript;
     }
 
+    /**
+     * Sets the prepare script code
+     * @param prepareScript
+     */
     public void setPrepareScript(String prepareScript) {
         this.prepareScript = prepareScript;
     }
 
+    /**
+     * Returns the directory containing the setup relevant files and sub directories
+     * @return
+     */
     public File getFilesDir() {
         return filesDir;
     }
 
+    /**
+     * Returns the command line code.
+     * @return the command line code
+     */
     public String getCommandLine() {
         return commandLine;
     }
 
+    /**
+     * Returns true if the setup config should be deployed on save of the jenkins config page.
+     * @return true if the setup config should be deployed on save of the jenkins config page
+     */
     public boolean getDeployNow() {
         return this.deployNow;
     }
 
+    /**
+     * Sets the files dir.
+     * @param filesDir firectory to copy the setup files and sub directories from.
+     */
     public void setFilesDir(File filesDir) {
         if (filesDir.getPath().length() == 0) {
             filesDir = null;
@@ -88,10 +115,18 @@ public class SetupConfigItem {
         this.filesDir = filesDir;
     }
 
+    /**
+     * sets the command line code.
+     * @param commandLine the command line code
+     */
     public void setCommandLine(String commandLine) {
         this.commandLine = Util.fixEmpty(commandLine);
     }
 
+    /**
+     * sets the deploy flag.
+     * @param deployNow the deploy flag
+     */
     public void setDeployNow(boolean deployNow) {
         this.deployNow = deployNow;
     }
@@ -113,6 +148,10 @@ public class SetupConfigItem {
         }
     }
 
+    /**
+     * sets the assigned slaves' labels
+     * @param assignedLabelString
+     */
     public void setAssignedLabelString(String assignedLabelString) {
         this.assignedLabelString = assignedLabelString;
     }
