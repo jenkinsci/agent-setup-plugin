@@ -42,6 +42,7 @@ public class SetupConfigItem {
 
     /**
      * Constructor uesd to create the setup config instance
+     *
      * @param prepareScript
      * @param filesDir
      * @param commandLine
@@ -65,6 +66,7 @@ public class SetupConfigItem {
 
     /**
      * Returns the prepare script code.
+     *
      * @return the prepare script code
      */
     public String getPrepareScript() {
@@ -73,6 +75,7 @@ public class SetupConfigItem {
 
     /**
      * Sets the prepare script code
+     *
      * @param prepareScript
      */
     public void setPrepareScript(String prepareScript) {
@@ -81,6 +84,7 @@ public class SetupConfigItem {
 
     /**
      * Returns the directory containing the setup relevant files and sub directories
+     *
      * @return
      */
     public File getFilesDir() {
@@ -89,6 +93,7 @@ public class SetupConfigItem {
 
     /**
      * Returns the command line code.
+     *
      * @return the command line code
      */
     public String getCommandLine() {
@@ -97,6 +102,7 @@ public class SetupConfigItem {
 
     /**
      * Returns true if the setup config should be deployed on save of the jenkins config page.
+     *
      * @return true if the setup config should be deployed on save of the jenkins config page
      */
     public boolean getDeployNow() {
@@ -105,18 +111,20 @@ public class SetupConfigItem {
 
     /**
      * Sets the files dir.
+     *
      * @param filesDir firectory to copy the setup files and sub directories from.
      */
     public void setFilesDir(File filesDir) {
         if (filesDir.getPath().length() == 0) {
-            filesDir = null;
+            this.filesDir = null;
+        } else {
+            this.filesDir = filesDir;
         }
-
-        this.filesDir = filesDir;
     }
 
     /**
      * sets the command line code.
+     *
      * @param commandLine the command line code
      */
     public void setCommandLine(String commandLine) {
@@ -125,6 +133,7 @@ public class SetupConfigItem {
 
     /**
      * sets the deploy flag.
+     *
      * @param deployNow the deploy flag
      */
     public void setDeployNow(boolean deployNow) {
@@ -150,6 +159,7 @@ public class SetupConfigItem {
 
     /**
      * sets the assigned slaves' labels
+     *
      * @param assignedLabelString
      */
     public void setAssignedLabelString(String assignedLabelString) {
