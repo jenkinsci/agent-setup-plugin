@@ -10,20 +10,31 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import java.io.File;
 
 public class SetupConfigItem {
-    File filesDir;
-    String commandLine;
-    boolean deployNow;
-    String assignedLabelString;
+    
+    private String prepareScript;
+    private File filesDir;
+    private String commandLine;
+    private boolean deployNow;
+    private String assignedLabelString;
 
     @DataBoundConstructor
-    public SetupConfigItem(File filesDir, String commandLine, boolean deployNow, String assignedLabelString) {
-        this.filesDir = filesDir;
+    public SetupConfigItem(String prepareScript, File filesDir, String commandLine, boolean deployNow, String assignedLabelString) {
+        this.prepareScript = prepareScript;
+        this.filesDir = filesDir;        
         this.commandLine = commandLine;
         this.deployNow = deployNow;
         this.assignedLabelString = assignedLabelString;
     }
 
     public SetupConfigItem() {
+    }
+
+    public String getPrepareScript() {
+        return prepareScript;
+    }
+
+    public void setPrepareScript(String prepareScript) {
+        this.prepareScript = prepareScript;
     }
 
     public File getFilesDir() {

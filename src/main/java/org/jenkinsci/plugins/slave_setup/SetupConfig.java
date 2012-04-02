@@ -6,6 +6,7 @@ import hudson.Util;
 import hudson.model.*;
 import hudson.model.labels.LabelAtom;
 import hudson.util.FormValidation;
+import hudson.util.LogTaskListener;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
@@ -17,6 +18,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Keeps track of the configuration of slave_setup execution.
@@ -26,6 +29,8 @@ import java.util.Set;
 @Extension
 public class SetupConfig extends GlobalConfiguration {
 
+    private static final Logger LOGGER = Logger.getLogger(Descriptor.class.getName());
+
     private List<SetupConfigItem> setupConfigItems = new ArrayList<SetupConfigItem>();
     
     public SetupConfig() {
@@ -33,12 +38,10 @@ public class SetupConfig extends GlobalConfiguration {
     }
 
     public List<SetupConfigItem> getSetupConfigItems() {
-        System.out.println("getSetupConfigItems: " + setupConfigItems);
         return setupConfigItems;
     }
 
     public void setSetupConfigItems(List<SetupConfigItem> setupConfigItems) {
-        System.out.println("setSetupConfigItems" + setupConfigItems);
         this.setupConfigItems = setupConfigItems;
     }   
 
@@ -48,15 +51,19 @@ public class SetupConfig extends GlobalConfiguration {
         req.bindJSON(this,json);
         save();
 
-        /*
-        if(this.setupConfigItems.get(0).getDeployNow()) {
-            SetupDeployer deployer = new SetupDeployer();
-            
-            List<Computer> allActiveSlaves = deployer.getAllActiveSlaves();
+        SetupDeployer deployer = new SetupDeployer();
 
-            deployer.deployToComputers(allActiveSlaves, this);
+        // execute prepareScripts
+        deployer.executePrepareScripts(this, new LogTaskListener(LOGGER, Level.ALL));
+
+        List<Computer> allActiveSlaves = deployer.getAllActiveSlaves();
+
+        for (SetupConfigItem setupConfigItem : this.setupConfigItems) {
+            if(setupConfigItem.getDeployNow()) {
+                deployer.deployToComputers(allActiveSlaves, setupConfigItem);
+            }
         }
-          */
+
         return true;
     }
 
