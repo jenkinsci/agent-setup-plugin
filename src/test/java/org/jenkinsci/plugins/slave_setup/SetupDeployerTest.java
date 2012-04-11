@@ -6,6 +6,7 @@ import hudson.model.*;
 import hudson.model.labels.LabelAtom;
 import hudson.slaves.DumbSlave;
 import hudson.slaves.OfflineCause;
+import hudson.slaves.SlaveComputer;
 import hudson.util.IOUtils;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
@@ -35,14 +36,18 @@ public class SetupDeployerTest extends HudsonTestCase {
     protected void setUp() throws Exception {
         super.setUp();
         this.slaves = new ArrayList<DumbSlave>();
-
-        Label label1 = new LabelAtom("foo");
-        Label label2 = new LabelAtom("foo || bar");
-        Label label3 = new LabelAtom("bar");
         
-        this.slaves.add(this.createOnlineSlave(label1));
-        this.slaves.add(this.createOnlineSlave(label2));
-        this.slaves.add(this.createOnlineSlave(label3));
+        this.slaves.add(this.createSlave("foo", null));
+        this.slaves.add(this.createSlave("foo bar", null));
+        this.slaves.add(this.createSlave("bar", null));
+
+        for(int i = 0; i < 3; i++) {
+            SlaveComputer c = this.slaves.get(i).getComputer();
+            c.connect(false).get(); // wait until it's connected
+            if(c.isOffline()) {
+                fail("Slave failed to go online: "+c.getLog());
+            }
+        }
     }
 
     @Test
@@ -167,8 +172,6 @@ public class SetupDeployerTest extends HudsonTestCase {
     public void testExecutePrepareScripts() {
         SetupConfig setupConfig = new SetupConfig();
 
-
-
         File sci1Files = prepSCIFile("sci1");
         SetupConfigItem sci1 = new SetupConfigItem();
         sci1.setPrepareScript("echo \"prep01=v01\" > sci1.properties");
@@ -186,14 +189,14 @@ public class SetupDeployerTest extends HudsonTestCase {
         File sci3Files = prepSCIFile("sci3");
         SetupConfigItem sci3 = new SetupConfigItem();
         sci3.setPrepareScript("echo \"prep03=v03\" > sci3.properties");
-        sci3.setAssignedLabelString("foo bar");
+        sci3.setAssignedLabelString("foo || bar");
         sci3.setFilesDir(sci3Files);
         setupConfig.getSetupConfigItems().add(sci3);
 
         TaskListener taskListener = this.createTaskListener();
 
         SetupDeployer setupDeployer = new SetupDeployer();
-        int preparedStatus = setupDeployer.executePrepareScripts(setupConfig, taskListener);
+        int preparedStatus = setupDeployer.executePrepareScripts(null, setupConfig, taskListener);
         assertEquals(0, preparedStatus);
 
         File[] expectedSci1Files = sci1Files.listFiles();
@@ -223,6 +226,27 @@ public class SetupDeployerTest extends HudsonTestCase {
             fail(e.getMessage());
         }
     }
+
+    @Test
+    public void testCheckLabels() {
+        SetupDeployer setupDeployer = new SetupDeployer();
+
+        SetupConfigItem noLabelItem = new SetupConfigItem();
+
+        //config items with no label should always be executed.
+        for(int i = 0; i < 3; i++) {
+            assertTrue(setupDeployer.checkLabels(this.slaves.get(i).getComputer(), noLabelItem));
+        }
+
+        SetupConfigItem oneLabelItem = new SetupConfigItem();
+        oneLabelItem.setAssignedLabelString("foo");
+
+        //config items with foo label should be executed on slave 0 and 1 but not on 2.
+        assertTrue(setupDeployer.checkLabels(this.slaves.get(0).getComputer(), oneLabelItem));
+        assertTrue(setupDeployer.checkLabels(this.slaves.get(1).getComputer(), oneLabelItem));
+        assertFalse(setupDeployer.checkLabels(this.slaves.get(2).getComputer(), oneLabelItem));
+    }
+
 
     private File prepSCIFile(String name) {
         Computer computer = Jenkins.MasterComputer.currentComputer();

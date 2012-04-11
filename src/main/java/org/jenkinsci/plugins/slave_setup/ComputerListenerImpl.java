@@ -30,7 +30,7 @@ public class ComputerListenerImpl extends ComputerListener {
 
         SetupDeployer deployer = new SetupDeployer();
 
-        deployer.executePrepareScripts(config, listener);
+        deployer.executePrepareScripts(c, config, listener);
 
         deployer.deployToComputer(c, root, listener, config);
     }

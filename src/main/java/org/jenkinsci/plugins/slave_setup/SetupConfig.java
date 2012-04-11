@@ -53,7 +53,7 @@ public class SetupConfig extends GlobalConfiguration {
         SetupDeployer deployer = new SetupDeployer();
 
         // execute prepareScripts
-        deployer.executePrepareScripts(this, new LogTaskListener(LOGGER, Level.ALL));
+        deployer.executePrepareScripts(null, this, new LogTaskListener(LOGGER, Level.ALL));
 
         List<Computer> allActiveSlaves = deployer.getAllActiveSlaves();
 

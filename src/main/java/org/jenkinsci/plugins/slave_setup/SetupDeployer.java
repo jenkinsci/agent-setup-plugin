@@ -8,6 +8,7 @@ import hudson.model.Computer;
 import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.TaskListener;
+import hudson.model.labels.LabelAtom;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.tasks.Shell;
 import hudson.util.LogTaskListener;
@@ -103,6 +104,23 @@ public class SetupDeployer {
 
     }
 
+    /**
+     * Returns true if the given setup config item is responsible for the given slave computer.
+     *
+     * @param c               the slave computer
+     * @param setupConfigItem the setup config item to check
+     * @return true if the given setup config item is responsible for the given slave computer
+     */
+    public boolean checkLabels(Computer c, SetupConfigItem setupConfigItem) {
+        if (StringUtils.isBlank(setupConfigItem.getAssignedLabelString())) {
+            return true;
+        }
+
+        Label l = Jenkins.getInstance().getLabel(setupConfigItem.getAssignedLabelString());
+
+        return l.contains(c.getNode());
+    }
+
     private void executeScript(Computer c, FilePath root, TaskListener listener, String cmdLine) throws IOException, InterruptedException {
         if (cmdLine != null) {
             listener.getLogger().println("Executing script");
@@ -161,17 +179,19 @@ public class SetupDeployer {
      *
      * @return 0 if all prepare scripts were executes without error
      */
-    public int executePrepareScripts(SetupConfig config, TaskListener listener) {
+    public int executePrepareScripts(Computer c, SetupConfig config, TaskListener listener) {
         Computer computer = Jenkins.MasterComputer.currentComputer();
 
         int returnCode = 0; // everything went well.
 
         for (SetupConfigItem setupConfigItem : config.getSetupConfigItems()) {
-            try {
-                FilePath filePath = new FilePath(setupConfigItem.getFilesDir());
-                this.executeScript(computer, filePath, listener, setupConfigItem.getPrepareScript());
-            } catch (Exception e) {
-                returnCode++; // increment return code;
+            if (c == null || this.checkLabels(c, setupConfigItem)) {
+                try {
+                    FilePath filePath = new FilePath(setupConfigItem.getFilesDir());
+                    this.executeScript(computer, filePath, listener, setupConfigItem.getPrepareScript());
+                } catch (Exception e) {
+                    returnCode++; // increment return code;
+                }
             }
         }
 
