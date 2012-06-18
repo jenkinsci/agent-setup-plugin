@@ -10,7 +10,7 @@
     <packaging>hpi</packaging>
     <name>Jenkins Slave SetupPlugin</name>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Slave+Setup+Plugin</url>
-    <version>1.5-SNAPSHOT</version>
+    <version>1.5</version>
 
     <developers>
         <developer>
