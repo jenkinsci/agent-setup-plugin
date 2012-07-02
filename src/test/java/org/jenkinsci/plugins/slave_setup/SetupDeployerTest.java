@@ -101,8 +101,10 @@ public class SetupDeployerTest extends HudsonTestCase {
         TaskListener taskListener = this.createTaskListener();
 
         try {
+            SetupConfig config = createConfig(null);
+            setupDeployer.executePrepareScripts(slave, config, taskListener);
 
-            setupDeployer.deployToComputer(slave, root, taskListener, createConfig(null));
+            setupDeployer.deployToComputer(slave, root, taskListener, config);
             FilePath[] files = slave.getNode().getRootPath().list("setup.txt");
             assertEquals(1, files.length);
 
@@ -122,7 +124,10 @@ public class SetupDeployerTest extends HudsonTestCase {
         SetupDeployer setupDeployer = new SetupDeployer();
         List<Computer> activeSlaves = setupDeployer.getAllActiveSlaves();
 
-        setupDeployer.deployToComputers(activeSlaves, createConfig(null));
+
+        SetupConfig config = createConfig(null);
+        setupDeployer.executePrepareScripts(null, config, this.createTaskListener());
+        setupDeployer.deployToComputers(activeSlaves, config);
 
         for (Computer activeSlave : activeSlaves) {
             try {
@@ -146,7 +151,19 @@ public class SetupDeployerTest extends HudsonTestCase {
         List<Computer> activeSlaves = setupDeployer.getAllActiveSlaves();
         Label fooLabel = Label.get("foo");
 
-        setupDeployer.deployToComputers(activeSlaves, createConfig("foo"));
+        SetupConfig fooConfig = createConfig("foo");
+        fooConfig.getSetupConfigItems().add(new SetupConfigItem());
+        SetupConfigItem emptyPathSetupConfigItem = new SetupConfigItem();
+        emptyPathSetupConfigItem.setFilesDir(new File(""));
+        fooConfig.getSetupConfigItems().add(emptyPathSetupConfigItem);
+
+        SetupConfigItem emptyPathSetupConfigItemWithLabel = new SetupConfigItem();
+        emptyPathSetupConfigItemWithLabel.setFilesDir(new File(""));
+        emptyPathSetupConfigItemWithLabel.setAssignedLabelString("foo");
+        fooConfig.getSetupConfigItems().add(emptyPathSetupConfigItemWithLabel);
+
+        setupDeployer.executePrepareScripts(null, fooConfig, this.createTaskListener());
+        setupDeployer.deployToComputers(activeSlaves, fooConfig);
 
         for (Computer activeSlave : activeSlaves) {
             try {
@@ -169,26 +186,26 @@ public class SetupDeployerTest extends HudsonTestCase {
     }
 
     @Test
-    public void testExecutePrepareScripts() {
+    public void testExecutePrepareScripts() throws Exception {
         SetupConfig setupConfig = new SetupConfig();
 
         File sci1Files = prepSCIFile("sci1");
         SetupConfigItem sci1 = new SetupConfigItem();
-        sci1.setPrepareScript("echo \"prep01=v01\" > sci1.properties");
+        sci1.setPrepareScript("echo \"prep01=v01\" > " + sci1Files.getCanonicalPath() + "/sci1.properties");
         sci1.setAssignedLabelString("foo");
         sci1.setFilesDir(sci1Files);
         setupConfig.getSetupConfigItems().add(sci1);
 
         File sci2Files = prepSCIFile("sci2");
         SetupConfigItem sci2 = new SetupConfigItem();
-        sci2.setPrepareScript("echo \"prep02=v02\" > sci2.properties");
+        sci2.setPrepareScript("echo \"prep02=v02\" > " + sci2Files.getCanonicalPath() + "/sci2.properties");
         sci2.setAssignedLabelString("bar");
         sci2.setFilesDir(sci2Files);
         setupConfig.getSetupConfigItems().add(sci2);
 
         File sci3Files = prepSCIFile("sci3");
         SetupConfigItem sci3 = new SetupConfigItem();
-        sci3.setPrepareScript("echo \"prep03=v03\" > sci3.properties");
+        sci3.setPrepareScript("echo \"prep03=v03\" > " + sci3Files.getCanonicalPath() + "/sci3.properties");
         sci3.setAssignedLabelString("foo || bar");
         sci3.setFilesDir(sci3Files);
         setupConfig.getSetupConfigItems().add(sci3);
@@ -196,8 +213,7 @@ public class SetupDeployerTest extends HudsonTestCase {
         TaskListener taskListener = this.createTaskListener();
 
         SetupDeployer setupDeployer = new SetupDeployer();
-        int preparedStatus = setupDeployer.executePrepareScripts(null, setupConfig, taskListener);
-        assertEquals(0, preparedStatus);
+        setupDeployer.executePrepareScripts(null, setupConfig, taskListener);
 
         File[] expectedSci1Files = sci1Files.listFiles();
         assertEquals(1, expectedSci1Files.length);
@@ -245,6 +261,14 @@ public class SetupDeployerTest extends HudsonTestCase {
         assertTrue(setupDeployer.checkLabels(this.slaves.get(0).getComputer(), oneLabelItem));
         assertTrue(setupDeployer.checkLabels(this.slaves.get(1).getComputer(), oneLabelItem));
         assertFalse(setupDeployer.checkLabels(this.slaves.get(2).getComputer(), oneLabelItem));
+
+        SetupConfigItem oneLabelItemWithWhitespace = new SetupConfigItem();
+        oneLabelItemWithWhitespace.setAssignedLabelString("foo ");
+
+        //config items with foo label should be executed on slave 0 and 1 but not on 2.
+        assertTrue(setupDeployer.checkLabels(this.slaves.get(0).getComputer(), oneLabelItemWithWhitespace));
+        assertTrue(setupDeployer.checkLabels(this.slaves.get(1).getComputer(), oneLabelItemWithWhitespace));
+        assertFalse(setupDeployer.checkLabels(this.slaves.get(2).getComputer(), oneLabelItemWithWhitespace));
     }
 
 

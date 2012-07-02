@@ -8,6 +8,7 @@ import hudson.remoting.Channel;
 import hudson.slaves.ComputerListener;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Kohsuke Kawaguchi
@@ -26,13 +27,19 @@ public class ComputerListenerImpl extends ComputerListener {
      */
     @Override
     public void preOnline(Computer c, Channel channel, FilePath root, TaskListener listener) throws IOException, InterruptedException {
+        listener.getLogger().println("just before slave " + c.getName() + " gets online ...");
+
         SetupConfig config = SetupConfig.get();
 
         SetupDeployer deployer = new SetupDeployer();
 
+        listener.getLogger().println("executing prepare script ...");
         deployer.executePrepareScripts(c, config, listener);
 
+        listener.getLogger().println("setting up slave " + c.getName() + " ...");
         deployer.deployToComputer(c, root, listener, config);
+
+        listener.getLogger().println("slave setup done.");
     }
 
 }

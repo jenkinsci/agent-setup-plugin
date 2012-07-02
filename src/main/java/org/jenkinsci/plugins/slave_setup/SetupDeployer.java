@@ -8,7 +8,6 @@ import hudson.model.Computer;
 import hudson.model.Label;
 import hudson.model.Node;
 import hudson.model.TaskListener;
-import hudson.model.labels.LabelAtom;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.tasks.Shell;
 import hudson.util.LogTaskListener;
@@ -78,30 +77,28 @@ public class SetupDeployer {
      * @throws InterruptedException
      */
     public void deployToComputer(Computer c, FilePath root, TaskListener listener, SetupConfigItem setupConfigItem) throws IOException, InterruptedException {
+        // do not deploy is prepare script for this setup config item did not work
+        if (!setupConfigItem.isPrepareScriptExecuted()) {
+            listener.getLogger().println("Slave NOT set up as prepare script was not executed successfully.");
+            return;
+        }
 
         //do not deploy if label of computer and config do not match.
-        if (StringUtils.isNotBlank(setupConfigItem.getAssignedLabelString())) {
-            Label label = Label.get(setupConfigItem.getAssignedLabelString());
-
-            if (label != null && !label.contains(c.getNode())) {
-                return;
+        if (this.checkLabels(c, setupConfigItem)) {
+            // copy files
+            File sd = setupConfigItem.getFilesDir();
+            if (sd != null && StringUtils.isNotBlank(sd.getPath())) {
+                listener.getLogger().println("Copying setup script files from " + sd);
+                new FilePath(sd).copyRecursiveTo(root);
             }
+
+            // execute command line
+            String cmdLine = setupConfigItem.getCommandLine();
+
+            executeScript(c, root, listener, cmdLine);
+        } else {
+            listener.getLogger().println("Slave " + c.getName() + " NOT set up as assigned label expression '" + setupConfigItem.getAssignedLabelString() + "' does not match with node label '" + c.getNode().getLabelString() + "'");
         }
-
-        // copy files
-        File sd = setupConfigItem.getFilesDir();
-        if (sd != null)
-
-        {
-            listener.getLogger().println("Copying setup script files");
-            new FilePath(sd).copyRecursiveTo(root);
-        }
-
-        // execute command line
-        String cmdLine = setupConfigItem.getCommandLine();
-
-        executeScript(c, root, listener, cmdLine);
-
     }
 
     /**
@@ -116,14 +113,15 @@ public class SetupDeployer {
             return true;
         }
 
-        Label l = Jenkins.getInstance().getLabel(setupConfigItem.getAssignedLabelString());
+        //Label l = Jenkins.getInstance().getLabel(setupConfigItem.getAssignedLabelString());
+        Label label = Label.get(setupConfigItem.getAssignedLabelString());
 
-        return l.contains(c.getNode());
+        return label.contains(c.getNode());
     }
 
     private void executeScript(Computer c, FilePath root, TaskListener listener, String cmdLine) throws IOException, InterruptedException {
-        if (cmdLine != null) {
-            listener.getLogger().println("Executing script");
+        if (StringUtils.isNotBlank(cmdLine)) {
+            listener.getLogger().println("Executing script '" + cmdLine + "' on " + c.getName());
             Node node = c.getNode();
             Launcher launcher = root.createLauncher(listener);
             Shell s = new Shell(cmdLine);
@@ -131,10 +129,11 @@ public class SetupDeployer {
             int r = launcher.launch().cmds(s.buildCommandLine(script)).envs(getEnvironment(node)).stdout(listener).pwd(root).join();
 
             if (r != 0) {
-                throw new AbortException("script failed");
+                listener.getLogger().println("script failed!");
+                throw new AbortException("script failed!");
             }
 
-            listener.getLogger().println("script completed successfully");
+            listener.getLogger().println("script executed successfully.");
         }
     }
 
@@ -179,23 +178,29 @@ public class SetupDeployer {
      *
      * @return 0 if all prepare scripts were executes without error
      */
-    public int executePrepareScripts(Computer c, SetupConfig config, TaskListener listener) {
+    public void executePrepareScripts(Computer c, SetupConfig config, TaskListener listener) {
+        // execute prepare scripts on master relative to jenkins install dir
         Computer computer = Jenkins.MasterComputer.currentComputer();
-
-        int returnCode = 0; // everything went well.
+        FilePath filePath = Jenkins.getInstance().getRootPath();
 
         for (SetupConfigItem setupConfigItem : config.getSetupConfigItems()) {
-            if (c == null || this.checkLabels(c, setupConfigItem)) {
-                try {
-                    FilePath filePath = new FilePath(setupConfigItem.getFilesDir());
-                    this.executeScript(computer, filePath, listener, setupConfigItem.getPrepareScript());
-                } catch (Exception e) {
-                    returnCode++; // increment return code;
+            if (StringUtils.isBlank(setupConfigItem.getPrepareScript())) {
+                setupConfigItem.setPrepareScriptExecuted(true);
+            } else {
+                // execute this config's prepare script if the target computer is not set (on save of the
+                // jenkins configuration page) or if the label expression of the config matches with the given
+                // computer.
+                if (c == null || this.checkLabels(c, setupConfigItem)) {
+                    try {
+                        this.executeScript(computer, filePath, listener, setupConfigItem.getPrepareScript());
+                        setupConfigItem.setPrepareScriptExecuted(true);
+                    } catch (Exception e) {
+                        listener.getLogger().println("prepare script failed with exception: " + e.getMessage());
+                        setupConfigItem.setPrepareScriptExecuted(false);
+                    }
                 }
             }
         }
-
-        return returnCode;
     }
 
     /**

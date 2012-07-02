@@ -41,6 +41,11 @@ public class SetupConfigItem {
     private String assignedLabelString;
 
     /**
+     * true if prepare script was executed successfully
+     */
+    private boolean prepareScriptExecuted = false;
+
+    /**
      * Constructor uesd to create the setup config instance
      *
      * @param prepareScript
@@ -138,6 +143,22 @@ public class SetupConfigItem {
      */
     public void setDeployNow(boolean deployNow) {
         this.deployNow = deployNow;
+    }
+
+    /**
+     * Returns the prepare script executed status.
+     * @return the prepare script executed status
+     */
+    public boolean isPrepareScriptExecuted() {
+        return this.prepareScriptExecuted;
+    }
+
+    /**
+     * sets the prepare script executed status.
+     * @param prepareScriptExecuted the prepare script executed status
+     */
+    public void setPrepareScriptExecuted(boolean prepareScriptExecuted) {
+        this.prepareScriptExecuted = prepareScriptExecuted;
     }
 
     /**
