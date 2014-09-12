@@ -1,9 +1,6 @@
 package org.jenkinsci.plugins.slave_setup;
 
-import hudson.AbortException;
-import hudson.EnvVars;
-import hudson.FilePath;
-import hudson.Launcher;
+import hudson.*;
 import hudson.model.Computer;
 import hudson.model.Label;
 import hudson.model.Node;
@@ -95,7 +92,7 @@ public class SetupDeployer {
             // execute command line
             String cmdLine = setupConfigItem.getCommandLine();
 
-            executeScript(c, root, listener, cmdLine);
+            executeScript(c, root, listener, cmdLine, createEnvVarsForComputer(c));
         } else {
             listener.getLogger().println("Slave " + c.getName() + " NOT set up as assigned label expression '" + setupConfigItem.getAssignedLabelString() + "' does not match with node label '" + c.getNode().getLabelString() + "'");
         }
@@ -119,14 +116,14 @@ public class SetupDeployer {
         return label.contains(c.getNode());
     }
 
-    private void executeScript(Computer c, FilePath root, TaskListener listener, String cmdLine) throws IOException, InterruptedException {
+    private void executeScript(Computer c, FilePath root, TaskListener listener, String cmdLine, EnvVars additionalEnvironment) throws IOException, InterruptedException {
         if (StringUtils.isNotBlank(cmdLine)) {
             listener.getLogger().println("Executing script '" + cmdLine + "' on " + c.getName());
             Node node = c.getNode();
             Launcher launcher = root.createLauncher(listener);
             Shell s = new Shell(cmdLine);
             FilePath script = s.createScriptFile(root);
-            int r = launcher.launch().cmds(s.buildCommandLine(script)).envs(getEnvironment(node)).stdout(listener).pwd(root).join();
+            int r = launcher.launch().cmds(s.buildCommandLine(script)).envs(getEnvironment(node, additionalEnvironment)).stdout(listener).pwd(root).join();
 
             if (r != 0) {
                 listener.getLogger().println("script failed!");
@@ -192,7 +189,7 @@ public class SetupDeployer {
                 // computer.
                 if (c == null || this.checkLabels(c, setupConfigItem)) {
                     try {
-                        this.executeScript(computer, filePath, listener, setupConfigItem.getPrepareScript());
+                        this.executeScript(computer, filePath, listener, setupConfigItem.getPrepareScript(), createEnvVarsForComputer(c));
                         setupConfigItem.setPrepareScriptExecuted(true);
                     } catch (Exception e) {
                         listener.getLogger().println("prepare script failed with exception: " + e.getMessage());
@@ -203,15 +200,33 @@ public class SetupDeployer {
         }
     }
 
+    private EnvVars createEnvVarsForComputer(Computer c) {
+        EnvVars additionalEnvironment = new EnvVars();
+        if (c != null) {
+            additionalEnvironment.put("NODE_TO_SETUP_NAME", c.getName());
+            Node node = c.getNode();
+            if (node != null) {
+                additionalEnvironment.put("NODE_TO_SETUP_LABELS", Util.join(node.getAssignedLabels(), " "));
+            }
+        }
+        return additionalEnvironment;
+    }
+
     /**
      * Returns the environment variables for the given node.
      *
      * @param node node to get the environment variables from
+     * @param additionalEnvironment environment added to the environment from the node. Take precedence over environment from the node.
      * @return the environment variables for the given node
      */
-    private EnvVars getEnvironment(Node node) {
+    private EnvVars getEnvironment(Node node, EnvVars additionalEnvironment) {
+        EnvVars envVars = new EnvVars();
         EnvironmentVariablesNodeProperty env = node.getNodeProperties().get(EnvironmentVariablesNodeProperty.class);
-        return env != null ? env.getEnvVars() : new EnvVars();
+        if (env != null) {
+            envVars.putAll(env.getEnvVars());
+        }
+        envVars.putAll(additionalEnvironment);
+        return envVars;
     }
 
 
