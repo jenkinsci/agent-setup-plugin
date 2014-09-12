@@ -1,0 +1,16 @@
+<div>
+    Specify the command to be executed on the master before Jenkins
+    starts using the slave. This executes in JENKINS_HOME.
+
+    <p>
+    Any non-zero exit code will prevent the command to prepare the slave from being executed.
+
+    <p>
+    Commands typed in here is executed as a shell script (by using the shell you specified
+    in the system config page), but if you need to use a different interpreter,
+    start with "#!" and it'll execute the script with your interpreter of the choice.
+
+    <p>
+    The script has the environment variables NODE_TO_SETUP_NAME and NODE_TO_SETUP_LABELS at its disposition.
+    They are set to the NODE_NAME and NODE_LABELS of the slave which is being launched.
+</div>

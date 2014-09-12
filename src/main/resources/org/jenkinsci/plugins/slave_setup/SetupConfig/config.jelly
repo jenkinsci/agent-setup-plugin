@@ -3,40 +3,7 @@
     <f:section title="Slave Setups">
 
         <f:entry title="Slave Setups" description="${%Slave Setups list}">
-
-            <f:repeatable var="setupConfigItems" items="${instance.setupConfigItems}">
-                <table width="100%">
-                     <f:entry title="prepare script">
-                        <f:expandableTextbox name="slaveSetup.prepareScript" value="${setupConfigItems.prepareScript}"  />
-                    </f:entry>
-
-                    <f:entry title="setup files directory">
-                        <f:textbox name="slaveSetup.filesDir" value="${setupConfigItems.filesDir}"/>
-                    </f:entry>
-
-                    <f:entry title="setup script after copy">
-                        <f:expandableTextbox name="slaveSetup.commandLine" value="${setupConfigItems.commandLine}"  />
-                    </f:entry>
-
-                    <f:entry title="deploy on save now">
-                        <f:checkbox name="slaveSetup.deployNow" checked="${setupConfigItems.deployNow}"  />
-                    </f:entry>
-
-                    <j:if test="${app.labels.size() gt 1 || app.clouds.size() gt 0}">
-                        <f:entry title="${%Label Expression}" field="assignedLabelString">
-                            <f:textbox autoCompleteDelimChar=" " value="${setupConfigItems.assignedLabelString}"/>
-                        </f:entry>
-                    </j:if>
-
-                    <f:entry title="">
-                        <div align="right">
-                            <f:repeatableDeleteButton/>
-                        </div>
-                    </f:entry>
-
-                </table>
-            </f:repeatable>
-
+            <f:repeatableProperty field="setupConfigItems" />
         </f:entry>
 
     </f:section>

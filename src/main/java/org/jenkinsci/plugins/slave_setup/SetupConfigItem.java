@@ -1,7 +1,11 @@
 package org.jenkinsci.plugins.slave_setup;
 
 import antlr.ANTLRException;
+import hudson.Extension;
 import hudson.Util;
+import hudson.model.AbstractDescribableImpl;
+import hudson.model.Describable;
+import hudson.model.Descriptor;
 import hudson.model.labels.LabelAtom;
 import hudson.model.labels.LabelExpression;
 import org.apache.commons.lang.StringUtils;
@@ -12,7 +16,7 @@ import java.io.File;
 /**
  * Represents a setup config for one set of labels. It may have its own prepare script, files to copy and command line.
  */
-public class SetupConfigItem {
+public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
 
 
     /**
@@ -48,11 +52,6 @@ public class SetupConfigItem {
     /**
      * Constructor uesd to create the setup config instance
      *
-     * @param prepareScript
-     * @param filesDir
-     * @param commandLine
-     * @param deployNow
-     * @param assignedLabelString
      */
     @DataBoundConstructor
     public SetupConfigItem(String prepareScript, File filesDir, String commandLine, boolean deployNow, String assignedLabelString) {
@@ -185,5 +184,14 @@ public class SetupConfigItem {
      */
     public void setAssignedLabelString(String assignedLabelString) {
         this.assignedLabelString = assignedLabelString;
+    }
+
+    @Extension
+    public static class SetupConfigItemDescriptor extends Descriptor<SetupConfigItem> {
+
+        @Override
+        public String getDisplayName() {
+            return "";
+        }
     }
 }
