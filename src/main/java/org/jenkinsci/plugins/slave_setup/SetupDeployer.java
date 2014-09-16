@@ -106,12 +106,17 @@ public class SetupDeployer {
      * @return true if the given setup config item is responsible for the given slave computer
      */
     public boolean checkLabels(Computer c, SetupConfigItem setupConfigItem) {
-        if (StringUtils.isBlank(setupConfigItem.getAssignedLabelString())) {
+        String assignedLabel = setupConfigItem.getAssignedLabelString();
+        return checkLabels(c, assignedLabel);
+    }
+
+    private boolean checkLabels(Computer c, String assignedLabel) {
+        if (StringUtils.isBlank(assignedLabel)) {
             return true;
         }
 
         //Label l = Jenkins.getInstance().getLabel(setupConfigItem.getAssignedLabelString());
-        Label label = Label.get(setupConfigItem.getAssignedLabelString());
+        Label label = Label.get(assignedLabel);
 
         return label.contains(c.getNode());
     }
@@ -170,34 +175,58 @@ public class SetupDeployer {
         }
     }
 
-    /**
-     * Returns 0 if all prepare scripts were executes without error.
-     *
-     * @return 0 if all prepare scripts were executes without error
-     */
     public void executePrepareScripts(Computer c, SetupConfig config, TaskListener listener) {
-        // execute prepare scripts on master relative to jenkins install dir
-        Computer computer = Jenkins.MasterComputer.currentComputer();
-        FilePath filePath = Jenkins.getInstance().getRootPath();
-
         for (SetupConfigItem setupConfigItem : config.getSetupConfigItems()) {
             if (StringUtils.isBlank(setupConfigItem.getPrepareScript())) {
                 setupConfigItem.setPrepareScriptExecuted(true);
             } else {
-                // execute this config's prepare script if the target computer is not set (on save of the
-                // jenkins configuration page) or if the label expression of the config matches with the given
-                // computer.
-                if (c == null || this.checkLabels(c, setupConfigItem)) {
-                    try {
-                        this.executeScript(computer, filePath, listener, setupConfigItem.getPrepareScript(), createEnvVarsForComputer(c));
-                        setupConfigItem.setPrepareScriptExecuted(true);
-                    } catch (Exception e) {
-                        listener.getLogger().println("prepare script failed with exception: " + e.getMessage());
-                        setupConfigItem.setPrepareScriptExecuted(false);
-                    }
+                boolean scriptExecuted = executeScriptOnMaster(
+                        setupConfigItem.getPrepareScript(),
+                        setupConfigItem.getAssignedLabelString(),
+                        c,
+                        listener);
+                setupConfigItem.setPrepareScriptExecuted(scriptExecuted);
+
+            }
+        }
+    }
+
+    public void executePreLaunchScripts(Computer c, SetupConfig config, TaskListener listener) throws AbortException {
+        for (SetupConfigItem setupConfigItem : config.getSetupConfigItems()) {
+            if (!StringUtils.isBlank(setupConfigItem.getPreLaunchScript())) {
+                boolean scriptExecuted = executeScriptOnMaster(
+                        setupConfigItem.getPreLaunchScript(),
+                        setupConfigItem.getAssignedLabelString(),
+                        c,
+                        listener);
+                if (!scriptExecuted) {
+                    throw new AbortException("Pre-launch script not executed successfully");
                 }
             }
         }
+    }
+
+    private boolean executeScriptOnMaster(String script, String labels, Computer c, TaskListener listener) {
+        // execute scripts on master relative to jenkins install dir
+        Computer computer = Jenkins.MasterComputer.currentComputer();
+        FilePath filePath = Jenkins.getInstance().getRootPath();
+
+
+        boolean scriptExecuted = false;
+        // execute this script if the target computer is not set (on save of the
+        // jenkins configuration page) or if the label expression of the config matches with the given
+        // computer.
+        if (c == null || this.checkLabels(c, labels)) {
+            try {
+                this.executeScript(computer, filePath, listener, script, createEnvVarsForComputer(c));
+                scriptExecuted = true;
+            } catch (Exception e) {
+                listener.getLogger().println("script failed with exception: " + e.getMessage());
+                scriptExecuted = false;
+            }
+        }
+
+        return scriptExecuted;
     }
 
     private EnvVars createEnvVarsForComputer(Computer c) {

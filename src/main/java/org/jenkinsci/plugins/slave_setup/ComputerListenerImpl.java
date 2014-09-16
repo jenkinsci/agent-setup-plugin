@@ -16,6 +16,19 @@ import java.util.List;
 @Extension
 public class ComputerListenerImpl extends ComputerListener {
 
+
+    private SetupDeployer deployer = new SetupDeployer();
+
+    @Override
+    public void preLaunch(Computer c, TaskListener listener) throws IOException, InterruptedException {
+        listener.getLogger().println("just before slave " + c.getName() + " gets launched ...");
+
+        SetupConfig config = SetupConfig.get();
+
+        listener.getLogger().println("executing pre-launch scripts ...");
+        deployer.executePreLaunchScripts(c, config, listener);
+    }
+
     /**
      * Prepares the slave before it gets online by copying the given content in root and executing the configured setup script.
      * @param c the computer to set up
@@ -30,8 +43,6 @@ public class ComputerListenerImpl extends ComputerListener {
         listener.getLogger().println("just before slave " + c.getName() + " gets online ...");
 
         SetupConfig config = SetupConfig.get();
-
-        SetupDeployer deployer = new SetupDeployer();
 
         listener.getLogger().println("executing prepare script ...");
         deployer.executePrepareScripts(c, config, listener);

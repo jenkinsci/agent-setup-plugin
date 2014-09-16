@@ -19,6 +19,8 @@ import java.io.File;
 public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
 
 
+    private String preLaunchScript;
+
     /**
      * the prepare script code
      */
@@ -54,7 +56,8 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
      *
      */
     @DataBoundConstructor
-    public SetupConfigItem(String prepareScript, File filesDir, String commandLine, boolean deployNow, String assignedLabelString) {
+    public SetupConfigItem(String preLaunchScript, String prepareScript, File filesDir, String commandLine, boolean deployNow, String assignedLabelString) {
+        this.preLaunchScript = preLaunchScript;
         this.prepareScript = prepareScript;
         this.filesDir = filesDir;
         this.commandLine = commandLine;
@@ -66,6 +69,14 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
      * Default constructor
      */
     public SetupConfigItem() {
+    }
+
+    public String getPreLaunchScript() {
+        return preLaunchScript;
+    }
+
+    public void setPreLaunchScript(String preLaunchScript) {
+        this.preLaunchScript = preLaunchScript;
     }
 
     /**
