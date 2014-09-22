@@ -1,26 +1,21 @@
 package org.jenkinsci.plugins.slave_setup;
 
-import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.*;
-import hudson.model.labels.LabelAtom;
 import hudson.slaves.DumbSlave;
 import hudson.slaves.OfflineCause;
 import hudson.slaves.SlaveComputer;
 import hudson.util.IOUtils;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.hudson.test.HudsonTestCase;
-import org.jvnet.localizer.Localizable;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -215,29 +210,35 @@ public class SetupDeployerTest extends HudsonTestCase {
         SetupDeployer setupDeployer = new SetupDeployer();
         setupDeployer.executePrepareScripts(null, setupConfig, taskListener);
 
-        File[] expectedSci1Files = sci1Files.listFiles();
-        assertEquals(1, expectedSci1Files.length);
-        try {
-            String line = IOUtils.readFirstLine(new FileInputStream(expectedSci1Files[0]), "UTF-8");
-            assertEquals("prep01=v01", line);
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
+        assertFirstLineEquals(sci1Files.listFiles(), "prep01=v01");
 
-        File[] expectedSci2Files = sci2Files.listFiles();
-        assertEquals(1, expectedSci2Files.length);
-        try {
-            String line = IOUtils.readFirstLine(new FileInputStream(expectedSci2Files[0]), "UTF-8");
-            assertEquals("prep02=v02", line);
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
+        assertFirstLineEquals(sci2Files.listFiles(), "prep02=v02");
 
-        File[] expectedSci3Files = sci3Files.listFiles();
-        assertEquals(1, expectedSci3Files.length);
+        assertFirstLineEquals(sci3Files.listFiles(), "prep03=v03");
+    }
+
+    @Test
+    public void testExecutePreLaunchScripts() throws Exception {
+        SetupConfig setupConfig = new SetupConfig();
+
+        File sciFiles = prepSCIFile("sci");
+        SetupConfigItem sci1 = new SetupConfigItem();
+        sci1.setPreLaunchScript("echo \"prep01=v01\" > " + sciFiles.getCanonicalPath() + "/sci.properties");
+        setupConfig.getSetupConfigItems().add(sci1);
+
+        TaskListener taskListener = this.createTaskListener();
+
+        SetupDeployer setupDeployer = new SetupDeployer();
+        setupDeployer.executePreLaunchScripts(null, setupConfig, taskListener);
+
+        assertFirstLineEquals(sciFiles.listFiles(), "prep01=v01");
+    }
+
+    private void assertFirstLineEquals(File[] expectedSciFiles, String expected) {
+        assertEquals(1, expectedSciFiles.length);
         try {
-            String line = IOUtils.readFirstLine(new FileInputStream(expectedSci3Files[0]), "UTF-8");
-            assertEquals("prep03=v03", line);
+            String line = IOUtils.readFirstLine(new FileInputStream(expectedSciFiles[0]), "UTF-8");
+            assertEquals(expected, line);
         } catch (IOException e) {
             fail(e.getMessage());
         }
