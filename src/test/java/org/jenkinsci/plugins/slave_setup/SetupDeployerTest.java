@@ -224,12 +224,13 @@ public class SetupDeployerTest extends HudsonTestCase {
         File sciFiles = prepSCIFile("sci");
         SetupConfigItem sci1 = new SetupConfigItem();
         sci1.setPreLaunchScript("echo \"prep01=v01\" > " + sciFiles.getCanonicalPath() + "/sci.properties");
+        sci1.setAssignedLabelString("foo");
         setupConfig.getSetupConfigItems().add(sci1);
 
         TaskListener taskListener = this.createTaskListener();
 
         SetupDeployer setupDeployer = new SetupDeployer();
-        setupDeployer.executePreLaunchScripts(null, setupConfig, taskListener);
+        setupDeployer.executePreLaunchScripts(slaves.get(0).getComputer(), setupConfig, taskListener);
 
         assertFirstLineEquals(sciFiles.listFiles(), "prep01=v01");
     }

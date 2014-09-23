@@ -61,7 +61,7 @@ public class SetupDeployer {
         List<SetupConfigItem> setupConfigItems = config.getSetupConfigItems();
 
         for (SetupConfigItem setupConfigItem : setupConfigItems) {
-            this.deployToComputer(c, root, listener, setupConfigItem);
+            deployToComputer(c, root, listener, setupConfigItem);
         }
     }
 
@@ -81,7 +81,7 @@ public class SetupDeployer {
         }
 
         //do not deploy if label of computer and config do not match.
-        if (this.checkLabels(c, setupConfigItem)) {
+        if (checkLabels(c, setupConfigItem)) {
             // copy files
             File sd = setupConfigItem.getFilesDir();
             if (sd != null && StringUtils.isNotBlank(sd.getPath())) {
@@ -99,6 +99,15 @@ public class SetupDeployer {
     }
 
     /**
+     * Checks if this script should be executed on the target computer. If the computer is not set (on save of the
+     * jenkins configuration page) or if the label expression of the config matches with the given
+     * computer.
+     */
+    private boolean checkLabelsForComputerOrNull(Computer c, SetupConfigItem item) {
+        return c == null || checkLabels(c, item);
+    }
+
+    /**
      * Returns true if the given setup config item is responsible for the given slave computer.
      *
      * @param c               the slave computer
@@ -107,10 +116,6 @@ public class SetupDeployer {
      */
     public boolean checkLabels(Computer c, SetupConfigItem setupConfigItem) {
         String assignedLabel = setupConfigItem.getAssignedLabelString();
-        return checkLabels(c, assignedLabel);
-    }
-
-    private boolean checkLabels(Computer c, String assignedLabel) {
         if (StringUtils.isBlank(assignedLabel)) {
             return true;
         }
@@ -148,7 +153,7 @@ public class SetupDeployer {
             try {
                 FilePath root = computer.getNode().getRootPath();
                 LogTaskListener listener = new LogTaskListener(LOGGER, Level.ALL);
-                this.deployToComputer(computer, root, listener, setupConfigItem);
+                deployToComputer(computer, root, listener, setupConfigItem);
             } catch (IOException e) {
                 LOGGER.severe(e.getMessage());
             } catch (InterruptedException e) {
@@ -166,7 +171,7 @@ public class SetupDeployer {
             try {
                 FilePath root = computer.getNode().getRootPath();
                 LogTaskListener listener = new LogTaskListener(LOGGER, Level.ALL);
-                this.deployToComputer(computer, root, listener, config);
+                deployToComputer(computer, root, listener, config);
             } catch (IOException e) {
                 LOGGER.severe(e.getMessage());
             } catch (InterruptedException e) {
@@ -179,13 +184,12 @@ public class SetupDeployer {
         for (SetupConfigItem setupConfigItem : config.getSetupConfigItems()) {
             if (StringUtils.isBlank(setupConfigItem.getPrepareScript())) {
                 setupConfigItem.setPrepareScriptExecuted(true);
-            } else {
-                boolean scriptExecuted = executeScriptOnMaster(
+            } else if (checkLabelsForComputerOrNull(c, setupConfigItem)) {
+                boolean successful = executeScriptOnMaster(
                         setupConfigItem.getPrepareScript(),
-                        setupConfigItem.getAssignedLabelString(),
                         c,
                         listener);
-                setupConfigItem.setPrepareScriptExecuted(scriptExecuted);
+                setupConfigItem.setPrepareScriptExecuted(successful);
 
             }
         }
@@ -193,37 +197,30 @@ public class SetupDeployer {
 
     public void executePreLaunchScripts(Computer c, SetupConfig config, TaskListener listener) throws AbortException {
         for (SetupConfigItem setupConfigItem : config.getSetupConfigItems()) {
-            if (!StringUtils.isBlank(setupConfigItem.getPreLaunchScript())) {
-                boolean scriptExecuted = executeScriptOnMaster(
+            if (!StringUtils.isBlank(setupConfigItem.getPreLaunchScript()) && checkLabels(c, setupConfigItem)) {
+                boolean successful = executeScriptOnMaster(
                         setupConfigItem.getPreLaunchScript(),
-                        setupConfigItem.getAssignedLabelString(),
                         c,
                         listener);
-                if (!scriptExecuted) {
-                    throw new AbortException("Pre-launch script not executed successfully");
+                if (!successful) {
+                    throw new AbortException("pre-launch script not executed successfully");
                 }
             }
         }
     }
 
-    private boolean executeScriptOnMaster(String script, String labels, Computer c, TaskListener listener) {
+    private boolean executeScriptOnMaster(String script, Computer c, TaskListener listener) {
         // execute scripts on master relative to jenkins install dir
         Computer computer = Jenkins.MasterComputer.currentComputer();
         FilePath filePath = Jenkins.getInstance().getRootPath();
 
-
-        boolean scriptExecuted = false;
-        // execute this script if the target computer is not set (on save of the
-        // jenkins configuration page) or if the label expression of the config matches with the given
-        // computer.
-        if (c == null || this.checkLabels(c, labels)) {
-            try {
-                this.executeScript(computer, filePath, listener, script, createEnvVarsForComputer(c));
-                scriptExecuted = true;
-            } catch (Exception e) {
-                listener.getLogger().println("script failed with exception: " + e.getMessage());
-                scriptExecuted = false;
-            }
+        boolean scriptExecuted;
+        try {
+            executeScript(computer, filePath, listener, script, createEnvVarsForComputer(c));
+            scriptExecuted = true;
+        } catch (Exception e) {
+            listener.getLogger().println("script failed with exception: " + e.getMessage());
+            scriptExecuted = false;
         }
 
         return scriptExecuted;
