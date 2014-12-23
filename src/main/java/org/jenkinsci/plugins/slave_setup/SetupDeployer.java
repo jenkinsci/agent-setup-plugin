@@ -92,7 +92,7 @@ public class SetupDeployer {
             // execute command line
             String cmdLine = setupConfigItem.getCommandLine();
 
-            executeScript(c, root, listener, cmdLine, createEnvVarsForComputer(c));
+            executeScript(c.getNode(), root, listener, cmdLine, createEnvVarsForComputer(c));
         } else {
             listener.getLogger().println("Slave " + c.getName() + " NOT set up as assigned label expression '" + setupConfigItem.getAssignedLabelString() + "' does not match with node label '" + c.getNode().getLabelString() + "'");
         }
@@ -126,10 +126,9 @@ public class SetupDeployer {
         return label.contains(c.getNode());
     }
 
-    private void executeScript(Computer c, FilePath root, TaskListener listener, String cmdLine, EnvVars additionalEnvironment) throws IOException, InterruptedException {
+    private void executeScript(Node node, FilePath root, TaskListener listener, String cmdLine, EnvVars additionalEnvironment) throws IOException, InterruptedException {
         if (StringUtils.isNotBlank(cmdLine)) {
-            listener.getLogger().println("Executing script '" + cmdLine + "' on " + c.getName());
-            Node node = c.getNode();
+            listener.getLogger().println("Executing script '" + cmdLine + "' on " + (node==null?"master":node.getNodeName()));
             Launcher launcher = root.createLauncher(listener);
             Shell s = new Shell(cmdLine);
             FilePath script = s.createScriptFile(root);
@@ -211,12 +210,10 @@ public class SetupDeployer {
 
     private boolean executeScriptOnMaster(String script, Computer c, TaskListener listener) {
         // execute scripts on master relative to jenkins install dir
-        Computer computer = Jenkins.MasterComputer.currentComputer();
-        FilePath filePath = Jenkins.getInstance().getRootPath();
-
+        FilePath filePath = Jenkins.getInstance().getRootPath();        
         boolean scriptExecuted;
         try {
-            executeScript(computer, filePath, listener, script, createEnvVarsForComputer(c));
+            executeScript(null, filePath, listener, script, createEnvVarsForComputer(c));
             scriptExecuted = true;
         } catch (Exception e) {
             listener.getLogger().println("script failed with exception: " + e.getMessage());
@@ -247,9 +244,11 @@ public class SetupDeployer {
      */
     private EnvVars getEnvironment(Node node, EnvVars additionalEnvironment) {
         EnvVars envVars = new EnvVars();
-        EnvironmentVariablesNodeProperty env = node.getNodeProperties().get(EnvironmentVariablesNodeProperty.class);
-        if (env != null) {
-            envVars.putAll(env.getEnvVars());
+        if (node!=null) {
+            EnvironmentVariablesNodeProperty env = node.getNodeProperties().get(EnvironmentVariablesNodeProperty.class);
+            if (env != null) {
+                envVars.putAll(env.getEnvVars());
+            }
         }
         envVars.putAll(additionalEnvironment);
         return envVars;
