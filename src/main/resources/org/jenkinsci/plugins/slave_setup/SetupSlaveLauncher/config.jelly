@@ -1,0 +1,14 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"  xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <f:entry title="Start script" field="startScript">
+        <f:expandableTextbox  />
+    </f:entry>
+
+    <f:entry title="Stop script" field="stopScript">
+        <f:expandableTextbox  />
+    </f:entry>
+
+    <st:include page="config.jelly" class="hudson.slaves.DelegatingComputerLauncher"/>
+
+</j:jelly>
