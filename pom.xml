@@ -14,19 +14,16 @@
 
     <developers>
         <developer>
-            <id>kohsuke</id>
-            <name>Kohsuke Kawaguchi</name>
-        </developer>
-        <developer>
-            <id>ffromm</id>
-            <name>Frederik Fromm</name>
+            <id>peppe</id>
+            <name>Giuseppe Landolfi</name>
+            <email>giuseppe.landolfi@gmail.com</email>
         </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:https://ffromm@github.com/jenkinsci/slave-setup-plugin.git</connection>
-        <developerConnection>scm:git:https://ffromm@github.com/jenkinsci/slave-setup-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/slave-setup-plugin.git</url>
+        <connection>scm:git:ssh://github.com/jenkinsci/slave-setup-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/slave-setup-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/slave-setup-plugin</url>
     </scm>
 
     <repositories>
