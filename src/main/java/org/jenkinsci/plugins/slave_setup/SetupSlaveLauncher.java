@@ -12,6 +12,7 @@ import hudson.slaves.ComputerLauncher;
 import hudson.slaves.DelegatingComputerLauncher;
 import hudson.slaves.SlaveComputer;
 import hudson.tasks.Shell;
+import hudson.EnvVars;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -37,7 +38,7 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
     /**
      * Executes a script on the master node, with a bit of tracing.
      */
-    private void execute(String script, TaskListener listener) throws IOException, InterruptedException {
+    private void execute(String script, TaskListener listener, SlaveComputer computer) throws IOException, InterruptedException {
         Jenkins jenkins = Jenkins.getInstance();
 
         if (jenkins == null) {
@@ -54,15 +55,23 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
             Shell shell = new Shell(script);
             FilePath root = jenkins.getRootPath();
             FilePath scriptFile = shell.createScriptFile(root);
-            int r = launcher.launch().cmds(shell.buildCommandLine(scriptFile)).stdout(listener).join();
+            int r = launcher.launch().cmds(shell.buildCommandLine(scriptFile)).envs(createEnvVarsFromComputer(computer)).stdout(listener).join();
 
             if (r != 0) {
                 throw new AbortException("Script failed with return code " + Integer.toString(r) + ".");
             }
 
             listener.getLogger().println("Script executed successfully.");
-
     }
+
+    private EnvVars createEnvVarsFromComputer(SlaveComputer computer) {
+        EnvVars additionalEnvironment = new EnvVars();
+        if (computer != null) {
+            additionalEnvironment.put("SLAVE_NAME", computer.getName());
+        }
+        return additionalEnvironment;
+    }
+
 
     /*
      * Getters for Jelly
@@ -81,7 +90,7 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
 
     @Override
     public void launch(SlaveComputer computer, TaskListener listener) throws IOException, InterruptedException {
-        execute(startScript, listener);
+        execute(startScript, listener, computer);
         super.launch(computer, listener);
     }
 
@@ -90,7 +99,7 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
         super.afterDisconnect(computer, listener);
 
         try {
-            execute(stopScript, listener);
+            execute(stopScript, listener, computer);
         }  catch (Exception e) {
             listener.getLogger().println("Failed executing script '" + stopScript + "'.");
             e.printStackTrace(listener.getLogger());
