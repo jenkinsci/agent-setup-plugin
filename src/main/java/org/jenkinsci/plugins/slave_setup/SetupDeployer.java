@@ -133,6 +133,7 @@ public class SetupDeployer {
             Launcher launcher = root.createLauncher(listener);
             Shell s = new Shell(cmdLine);
             FilePath script = s.createScriptFile(root);
+            listener.getLogger().println(getEnvironment(node, additionalEnvironment).toString());
             int r = launcher.launch().cmds(s.buildCommandLine(script)).envs(getEnvironment(node, additionalEnvironment)).stdout(listener).pwd(root).join();
 
             if (r != 0) {
