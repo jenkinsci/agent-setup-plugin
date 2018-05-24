@@ -12,6 +12,7 @@ import hudson.slaves.ComputerLauncher;
 import hudson.slaves.DelegatingComputerLauncher;
 import hudson.slaves.SlaveComputer;
 import hudson.tasks.Shell;
+import hudson.tasks.BatchFile;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -50,17 +51,41 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
             return;
         }
 
-            Launcher launcher = jenkins.getRootPath().createLauncher(listener);
+        Launcher launcher = jenkins.getRootPath().createLauncher(listener);
+
+        FilePath root = jenkins.getRootPath();
+
+        // New OS switching Method
+        /*
+            Added Unix and Win32 Platform Handling to add support to Windows OSs by using
+            the BathFile obj letting us to configure automated WIN machines on our
+            Integration enviroments.
+            Observed that both Shell and BatchFile are heritages from CommandInterpreter
+            so we added the BatchFile for WIN OSs support.
+
+            We decided to fork and add this small portion of code instead creating a new
+            one.
+         */
+
+        if(SystemUtils.IS_OS_WINDOWS) {
+            // Origin
             Shell shell = new Shell(script);
-            FilePath root = jenkins.getRootPath();
             FilePath scriptFile = shell.createScriptFile(root);
             int r = launcher.launch().cmds(shell.buildCommandLine(scriptFile)).stdout(listener).join();
+        }else{
+            // Suggested
+            BatchFile batch = new BatchFile(script):
+            FilePath scriptFile = batch.createScriptFile(root);
+            int r = launcher.launch().cmds(batch.buildCommandLine(scriptFile)).stdout(listener).join();
+        }
 
-            if (r != 0) {
-                throw new AbortException("Script failed with return code " + Integer.toString(r) + ".");
-            }
 
-            listener.getLogger().println("Script executed successfully.");
+
+        if (r != 0) {
+            throw new AbortException("Script failed with return code " + Integer.toString(r) + ".");
+        }
+
+        listener.getLogger().println("Script executed successfully.");
 
     }
 
