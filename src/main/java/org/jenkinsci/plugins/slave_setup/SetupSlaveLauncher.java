@@ -68,12 +68,17 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
          */
 
         if(SystemUtils.IS_OS_WINDOWS) {
-            // Origin
+            /*
+            Only used Shell(script) and shell.buildCommandLine(scriptfile) to execute commands.
+             */
             Shell shell = new Shell(script);
             FilePath scriptFile = shell.createScriptFile(root);
             int r = launcher.launch().cmds(shell.buildCommandLine(scriptFile)).stdout(listener).join();
         }else{
-            // Suggested
+            /*
+            Get the current OS and execute the commands depending on the OS to create a Shell
+            obj or a BatchFile obj to proceed depending the OS.
+             */
             BatchFile batch = new BatchFile(script):
             FilePath scriptFile = batch.createScriptFile(root);
             int r = launcher.launch().cmds(batch.buildCommandLine(scriptFile)).stdout(listener).join();
