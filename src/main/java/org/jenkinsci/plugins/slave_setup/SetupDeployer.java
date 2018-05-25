@@ -131,9 +131,10 @@ public class SetupDeployer {
             String nodeName = node.getNodeName();
             listener.getLogger().println("Executing script '" + cmdLine + "' on " + (StringUtils.isEmpty(nodeName) ? "master" : nodeName));
             Launcher launcher = root.createLauncher(listener);
-            Shell s = new Shell(cmdLine);
-            FilePath script = s.createScriptFile(root);
-            int r = launcher.launch().cmds(s.buildCommandLine(script)).envs(getEnvironment(node, additionalEnvironment)).stdout(listener).pwd(root).join();
+            // 25.05.18
+            // New Os Check & Switch to execute targeted scripts.
+            int r = Utils.remoteRun(launcher,listener,cmdLine,root);
+
 
             if (r != 0) {
                 listener.getLogger().println("script failed!");

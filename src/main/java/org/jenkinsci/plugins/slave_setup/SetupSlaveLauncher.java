@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.slave_setup;
 
 
 import com.google.common.base.Strings;
+import org.apache.commons.lang.SystemUtils;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
@@ -15,6 +16,7 @@ import hudson.tasks.Shell;
 import hudson.tasks.BatchFile;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
+
 
 import java.io.IOException;
 
@@ -55,41 +57,18 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
 
         FilePath root = jenkins.getRootPath();
 
-        // New OS switching Method
-        /*
-            Added Unix and Win32 Platform Handling to add support to Windows OSs by using
-            the BathFile obj letting us to configure automated WIN machines on our
-            Integration enviroments.
-            Observed that both Shell and BatchFile are heritages from CommandInterpreter
-            so we added the BatchFile for WIN OSs support.
-
-            We decided to fork and add this small portion of code instead creating a new
-            one.
-         */
-
-        if(SystemUtils.IS_OS_WINDOWS) {
-            /*
-            Only used Shell(script) and shell.buildCommandLine(scriptfile) to execute commands.
-             */
-            Shell shell = new Shell(script);
-            FilePath scriptFile = shell.createScriptFile(root);
-            int r = launcher.launch().cmds(shell.buildCommandLine(scriptFile)).stdout(listener).join();
-        }else{
-            /*
-            Get the current OS and execute the commands depending on the OS to create a Shell
-            obj or a BatchFile obj to proceed depending the OS.
-             */
-            BatchFile batch = new BatchFile(script):
-            FilePath scriptFile = batch.createScriptFile(root);
-            int r = launcher.launch().cmds(batch.buildCommandLine(scriptFile)).stdout(listener).join();
-        }
 
 
+        int r;
+        listener.getLogger().println("Checking operating system of slave, isUnix: " + String.valueOf(launcher.isUnix()));
+
+        // 25.05.18
+        // New Os Check & Switch to execute targeted scripts.
+        r = Utils.remoteRun(launcher,listener,script,root);
 
         if (r != 0) {
             throw new AbortException("Script failed with return code " + Integer.toString(r) + ".");
         }
-
         listener.getLogger().println("Script executed successfully.");
 
     }
@@ -112,6 +91,7 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
     @Override
     public void launch(SlaveComputer computer, TaskListener listener) throws IOException, InterruptedException {
         execute(startScript, listener);
+        listener.getLogger().println("Pre-Launch HERE Pls Print it " + String.valueOf(computer.isUnix()));
         super.launch(computer, listener);
     }
 
@@ -121,7 +101,7 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
 
         try {
             execute(stopScript, listener);
-        }  catch (Exception e) {
+        } catch (Exception e) {
             listener.getLogger().println("Failed executing script '" + stopScript + "'.");
             e.printStackTrace(listener.getLogger());
         }
