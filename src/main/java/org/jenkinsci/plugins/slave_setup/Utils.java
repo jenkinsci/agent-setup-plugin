@@ -33,7 +33,7 @@ public class Utils {
             to execute commands in SetupSlaveLauncher.java during the execution and SetupDeployer.java on executeScript
             method.
              */
-            listener.getLogger().println("Slave is detected as Unix executing script:\n" + script);
+            listener.getLogger().println("Slave is detected as Unix.");
             Shell shell = new Shell(script);
             FilePath scriptFile = shell.createScriptFile(root);
             r = launcher.launch().cmds(shell.buildCommandLine(scriptFile)).stdout(listener).join();
@@ -41,7 +41,7 @@ public class Utils {
             /*
             We create a BatchFile obj instead a Shell classObject if the current OS is not Unix
              */
-            listener.getLogger().println("Slave is detected as Windows executing script:\n" + script);
+            listener.getLogger().println("Slave is detected as Windows.");
             BatchFile batch = new BatchFile(script);
             FilePath scriptFile = batch.createScriptFile(root);
             r = launcher.launch().cmds(batch.buildCommandLine(scriptFile)).stdout(listener).join();
