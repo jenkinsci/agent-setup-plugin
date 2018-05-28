@@ -129,7 +129,8 @@ public class SetupDeployer {
     private void executeScript(Node node, FilePath root, TaskListener listener, String cmdLine, EnvVars additionalEnvironment) throws IOException, InterruptedException {
         if (StringUtils.isNotBlank(cmdLine)) {
             String nodeName = node.getNodeName();
-            listener.getLogger().println("Executing script '" + cmdLine + "' on " + (StringUtils.isEmpty(nodeName) ? "master" : nodeName));
+            // 28.05.18 Retrieving verbose printing avoiding noise during multilineScripts executions.
+            // listener.getLogger().println("Executing script '" + cmdLine + "' on " + (StringUtils.isEmpty(nodeName) ? "master" : nodeName));
             Launcher launcher = root.createLauncher(listener);
             // 25.05.18
             // New Os Check & Switch to execute targeted scripts.
