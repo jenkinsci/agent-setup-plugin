@@ -60,7 +60,9 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
 
 
         int r;
-        listener.getLogger().println("Checking operating system of slave, isUnix: " + String.valueOf(launcher.isUnix()));
+        // 29.05.18
+        // Don`t wanted verbose print - Jenkins checks the OS itself later.(1.11.3 rev)
+        //listener.getLogger().println("Checking operating system of slave, isUnix: " + String.valueOf(launcher.isUnix()));
 
         // 25.05.18
         // New Os Check & Switch to execute targeted scripts.
