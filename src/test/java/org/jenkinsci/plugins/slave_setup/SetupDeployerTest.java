@@ -253,24 +253,24 @@ public class SetupDeployerTest extends HudsonTestCase {
 
         //config items with no label should always be executed.
         for(int i = 0; i < 3; i++) {
-            assertTrue(setupDeployer.checkLabels(this.slaves.get(i).getComputer(), noLabelItem));
+            assertTrue(setupDeployer.oldCheckLabels(this.slaves.get(i).getComputer(), noLabelItem));
         }
 
         SetupConfigItem oneLabelItem = new SetupConfigItem();
         oneLabelItem.setAssignedLabelString("foo");
 
         //config items with foo label should be executed on slave 0 and 1 but not on 2.
-        assertTrue(setupDeployer.checkLabels(this.slaves.get(0).getComputer(), oneLabelItem));
-        assertTrue(setupDeployer.checkLabels(this.slaves.get(1).getComputer(), oneLabelItem));
-        assertFalse(setupDeployer.checkLabels(this.slaves.get(2).getComputer(), oneLabelItem));
+        assertTrue(setupDeployer.oldCheckLabels(this.slaves.get(0).getComputer(), oneLabelItem));
+        assertTrue(setupDeployer.oldCheckLabels(this.slaves.get(1).getComputer(), oneLabelItem));
+        assertFalse(setupDeployer.oldCheckLabels(this.slaves.get(2).getComputer(), oneLabelItem));
 
         SetupConfigItem oneLabelItemWithWhitespace = new SetupConfigItem();
         oneLabelItemWithWhitespace.setAssignedLabelString("foo ");
 
         //config items with foo label should be executed on slave 0 and 1 but not on 2.
-        assertTrue(setupDeployer.checkLabels(this.slaves.get(0).getComputer(), oneLabelItemWithWhitespace));
-        assertTrue(setupDeployer.checkLabels(this.slaves.get(1).getComputer(), oneLabelItemWithWhitespace));
-        assertFalse(setupDeployer.checkLabels(this.slaves.get(2).getComputer(), oneLabelItemWithWhitespace));
+        assertTrue(setupDeployer.oldCheckLabels(this.slaves.get(0).getComputer(), oneLabelItemWithWhitespace));
+        assertTrue(setupDeployer.oldCheckLabels(this.slaves.get(1).getComputer(), oneLabelItemWithWhitespace));
+        assertFalse(setupDeployer.oldCheckLabels(this.slaves.get(2).getComputer(), oneLabelItemWithWhitespace));
     }
 
 

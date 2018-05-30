@@ -6,17 +6,24 @@ import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Describable;
 import hudson.model.Descriptor;
+import hudson.model.TaskListener;
 import hudson.model.labels.LabelAtom;
 import hudson.model.labels.LabelExpression;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  * Represents a setup config for one set of labels. It may have its own prepare script, files to copy and command line.
  */
 public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
+
+    /**
+    * InstalledScripts log.
+    */
+    private ArrayList<String> installedComponents;
 
 
     private String preLaunchScript;
@@ -70,6 +77,9 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
      */
     public SetupConfigItem() {
     }
+
+    public ArrayList<String> getInstalledComponents(TaskListener listener, String slaveRootPath){return Utils.getInstalledComponents(listener,slaveRootPath);}
+
 
     public String getPreLaunchScript() {
         return preLaunchScript;

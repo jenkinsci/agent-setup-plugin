@@ -5,6 +5,7 @@ import hudson.FilePath;
 import hudson.model.Computer;
 import hudson.model.TaskListener;
 import hudson.remoting.Channel;
+// import hudson.remoting.Launcher;
 import hudson.slaves.ComputerListener;
 
 import java.io.IOException;
@@ -26,6 +27,8 @@ public class ComputerListenerImpl extends ComputerListener {
         SetupConfig config = SetupConfig.get();
 
         listener.getLogger().println("executing pre-launch scripts ...");
+        listener.getLogger().println("status channel " + c.getChannel() + " ...");
+
         deployer.executePreLaunchScripts(c, config, listener);
     }
 
@@ -48,7 +51,15 @@ public class ComputerListenerImpl extends ComputerListener {
         deployer.executePrepareScripts(c, config, listener);
 
         listener.getLogger().println("setting up slave " + c.getName() + " ...");
+        
         deployer.deployToComputer(c, root, listener, config);
+        listener.getLogger().println("status channel " + channel + " ..." + root.toString());
+
+        hudson.Launcher launch = root.createLauncher(listener);
+        FilePath fp = root.child("slave_setup.ini");
+        
+        listener.getLogger().println(String.format("config file in %s exists %b ", fp.getRemote(), fp.exists()));
+
 
         listener.getLogger().println("slave setup done.");
     }
