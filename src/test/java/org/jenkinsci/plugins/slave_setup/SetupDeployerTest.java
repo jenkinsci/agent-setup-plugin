@@ -97,7 +97,7 @@ public class SetupDeployerTest extends HudsonTestCase {
 
         try {
             SetupConfig config = createConfig(null);
-            setupDeployer.executePrepareScripts(slave, config, taskListener);
+            setupDeployer.executePrepareScripts(slave, config, taskListener,new ArrayList<String>());
 
             setupDeployer.deployToComputer(slave, root, taskListener, config);
             FilePath[] files = slave.getNode().getRootPath().list("setup.txt");
@@ -121,7 +121,7 @@ public class SetupDeployerTest extends HudsonTestCase {
 
 
         SetupConfig config = createConfig(null);
-        setupDeployer.executePrepareScripts(null, config, this.createTaskListener());
+        setupDeployer.executePrepareScripts(null, config, this.createTaskListener(),new ArrayList<String>());
         setupDeployer.deployToComputers(activeSlaves, config);
 
         for (Computer activeSlave : activeSlaves) {
@@ -142,6 +142,7 @@ public class SetupDeployerTest extends HudsonTestCase {
     @Test
     public void testDeployToComputers2() {
 
+        
         SetupDeployer setupDeployer = new SetupDeployer();
         List<Computer> activeSlaves = setupDeployer.getAllActiveSlaves();
         Label fooLabel = Label.get("foo");
@@ -157,7 +158,7 @@ public class SetupDeployerTest extends HudsonTestCase {
         emptyPathSetupConfigItemWithLabel.setAssignedLabelString("foo");
         fooConfig.getSetupConfigItems().add(emptyPathSetupConfigItemWithLabel);
 
-        setupDeployer.executePrepareScripts(null, fooConfig, this.createTaskListener());
+        setupDeployer.executePrepareScripts(null, fooConfig, this.createTaskListener(),new ArrayList<String>());
         setupDeployer.deployToComputers(activeSlaves, fooConfig);
 
         for (Computer activeSlave : activeSlaves) {
@@ -208,7 +209,7 @@ public class SetupDeployerTest extends HudsonTestCase {
         TaskListener taskListener = this.createTaskListener();
 
         SetupDeployer setupDeployer = new SetupDeployer();
-        setupDeployer.executePrepareScripts(null, setupConfig, taskListener);
+        setupDeployer.executePrepareScripts(null, setupConfig, taskListener,new ArrayList<String>());
 
         assertFirstLineEquals(sci1Files.listFiles(), "prep01=v01");
 
@@ -217,6 +218,8 @@ public class SetupDeployerTest extends HudsonTestCase {
         assertFirstLineEquals(sci3Files.listFiles(), "prep03=v03");
     }
 
+    /*
+    * Erasing Prelaunch methods 
     @Test
     public void testExecutePreLaunchScripts() throws Exception {
         SetupConfig setupConfig = new SetupConfig();
@@ -234,6 +237,7 @@ public class SetupDeployerTest extends HudsonTestCase {
 
         assertFirstLineEquals(sciFiles.listFiles(), "prep01=v01");
     }
+    */
 
     private void assertFirstLineEquals(File[] expectedSciFiles, String expected) {
         assertEquals(1, expectedSciFiles.length);
@@ -244,6 +248,7 @@ public class SetupDeployerTest extends HudsonTestCase {
             fail(e.getMessage());
         }
     }
+    
 
     @Test
     public void testCheckLabels() {

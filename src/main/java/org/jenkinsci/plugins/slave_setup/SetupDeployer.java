@@ -63,7 +63,7 @@ public class SetupDeployer {
             }
             result.append("}");
         } catch (Exception ex) {
-            result.append("Joder Peto " + ex.getMessage());
+            result.append("Unable to get attributes: " + ex.getMessage());
         }
         return result.toString();
     }
@@ -149,6 +149,7 @@ public class SetupDeployer {
      */
     private boolean checkLabelsForComputerOrNull(Computer c, SetupConfigItem item, TaskListener listener) {
 
+        listener.getLogger().println("DEBUG:On checkLabelsForComputerOrNull");
         listener.getLogger().println("Checking for nulls");
         return c == null || checkLabels(c, item, listener);
     }
@@ -167,12 +168,10 @@ public class SetupDeployer {
         if (StringUtils.isBlank(assignedLabel)) {
             return true;
         }
-
-        // Label l =
-        // Jenkins.getInstance().getLabel(setupConfigItem.getAssignedLabelString());
         Label label = Label.get(assignedLabel);
 
-        return label.contains(c.getNode());
+        // TODO: check it this link => https://github.com/beerdn/slave-setup-plugin/commit/511b19f24d6a59902c6d6b6c838c7c8a85674d85
+        return label.matches(c.getNode());
     }
 
     public void FastPrint(TaskListener lis, String message) {
@@ -181,13 +180,12 @@ public class SetupDeployer {
 
     public boolean checkLabels(Computer c, SetupConfigItem setupConfigItem, TaskListener listener) {
 
-        listener.getLogger().println("Starting scripts and labels checking\nInstalled Components");
+        listener.getLogger().println("DEBUG:On checklabels");
 
         FastPrint(listener, String.format("Check args for %s\nComputer: %s\nSetupItem: %s\n", c.getNode().getDisplayName(), StringFy(c), setupConfigItem));
 
-        String home = "";
 
-
+        /*
         try {
             EnvVars cVars = c.getEnvironment();
             listener.getLogger().println(cVars.firstKey());
@@ -199,16 +197,16 @@ public class SetupDeployer {
             listener.getLogger().println(String.format("Error getting node rootPath : %s", ex.getMessage()));
             home = "Error Thrown";
         }
-        listener.getLogger().println(String.format("Slave RootPath: %s", home));
+        */
+        //listener.getLogger().println(String.format("Slave RootPath: %s", c.getNode().getRootPath().getRemote()));
         // PUT ME HEERE
         ArrayList<String> installedComponents = new ArrayList<String>();
         try {
             installedComponents = setupConfigItem.getInstalledComponents(listener,
-                    c.getNode().getRootPath().getRemote());
+                    c.getNode().getRootPath());
         } catch (Exception ex) {
             FastPrint(listener, String.format("values of node: " + StringFy(c.getNode())));
             listener.getLogger().println(String.format("Error getting Remote rootPath : %s", ex.getMessage()));
-
         }
         for (String component : installedComponents) {
             listener.getLogger().println(component);
@@ -221,12 +219,26 @@ public class SetupDeployer {
 
         // Label l =
         // Jenkins.getInstance().getLabel(setupConfigItem.getAssignedLabelString());
-        Label label = Label.get(assignedLabel);
 
-        return label.contains(c.getNode());
+        listener.getLogger().println(String.format("AssignedLabel for node is : %s", assignedLabel));
+        String[]labels = assignedLabel.split("\\s+");
+        for(String currentLabel:labels)
+        {
+            if(!installedComponents.contains(currentLabel))
+            {
+                
+                listener.getLogger().println(String.format("%s in Node's assigned label.", assignedLabel));
+                return true;
+            }
+        }
+        listener.getLogger().println(String.format("%s is NOT in Node's assigned label.Executing Script", assignedLabel));
+        return false;
+
+        //Label label = Label.get(assignedLabel);
+        //return label.matches(c.getNode());
     }
 
-    private void executeScript(Node node, FilePath root, TaskListener listener, String cmdLine,
+    public void executeScript(Node node, FilePath root, TaskListener listener, String cmdLine,
             EnvVars additionalEnvironment) throws IOException, InterruptedException {
         if (StringUtils.isNotBlank(cmdLine)) {
             String nodeName = node.getNodeName();
@@ -286,20 +298,28 @@ public class SetupDeployer {
         }
     }
 
-    public void executePrepareScripts(Computer c, SetupConfig config, TaskListener listener) {
+    public boolean executePrepareScript(Computer c, SetupConfigItem config, TaskListener listener){
+        //TODO: This will run one script only, Copy above code without SetupConfig iteration
+        //TIP: you can improve syntax, and reutilization, moving instead copy  the inner code in iteration from above function.
+        //and finally return boolean to get if failed or not
+        return true;
+    }
+
+    public void executePrepareScripts(Computer c, SetupConfig config, TaskListener listener, ArrayList<String>installedComponents) {
         listener.getLogger().println("Executing PrepareScripts By BH");
         for (SetupConfigItem setupConfigItem : config.getSetupConfigItems()) {
             listener.getLogger().println("Checking config " + setupConfigItem.toString());
+            Utils.displayInstalledComponents(listener,installedComponents);
             if (StringUtils.isBlank(setupConfigItem.getPrepareScript())) {
                 setupConfigItem.setPrepareScriptExecuted(true);
             } else if (checkLabelsForComputerOrNull(c, setupConfigItem, listener)) {
                 boolean successful = executeScriptOnMaster(setupConfigItem.getPrepareScript(), c, listener);
                 setupConfigItem.setPrepareScriptExecuted(successful);
-
             }
         }
     }
 
+    /*
     public void executePreLaunchScripts(Computer c, SetupConfig config, TaskListener listener) throws AbortException {
         listener.getLogger().println("Executing PrelaunchScripts By BH");
         for (SetupConfigItem setupConfigItem : config.getSetupConfigItems()) {
@@ -315,8 +335,9 @@ public class SetupDeployer {
             }
         }
     }
+    */
 
-    private boolean executeScriptOnMaster(String script, Computer c, TaskListener listener) {
+    public boolean executeScriptOnMaster(String script, Computer c, TaskListener listener) {
         // execute scripts on master relative to jenkins install dir
         Node node = Jenkins.getInstance();
         FilePath filePath = node.getRootPath();
@@ -333,7 +354,7 @@ public class SetupDeployer {
         return scriptExecuted;
     }
 
-    private EnvVars createEnvVarsForComputer(Computer c) {
+    public EnvVars createEnvVarsForComputer(Computer c) {
         EnvVars additionalEnvironment = new EnvVars();
         if (c != null) {
             additionalEnvironment.put("NODE_TO_SETUP_NAME", c.getName());

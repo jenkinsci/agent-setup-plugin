@@ -2,6 +2,7 @@ package org.jenkinsci.plugins.slave_setup;
 
 import antlr.ANTLRException;
 import hudson.Extension;
+import hudson.FilePath;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Describable;
@@ -19,14 +20,6 @@ import java.util.ArrayList;
  * Represents a setup config for one set of labels. It may have its own prepare script, files to copy and command line.
  */
 public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
-
-    /**
-    * InstalledScripts log.
-    */
-    private ArrayList<String> installedComponents;
-
-
-    private String preLaunchScript;
 
     /**
      * the prepare script code
@@ -63,8 +56,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
      *
      */
     @DataBoundConstructor
-    public SetupConfigItem(String preLaunchScript, String prepareScript, File filesDir, String commandLine, boolean deployNow, String assignedLabelString) {
-        this.preLaunchScript = preLaunchScript;
+    public SetupConfigItem(String prepareScript, File filesDir, String commandLine, boolean deployNow, String assignedLabelString) {
         this.prepareScript = prepareScript;
         this.filesDir = filesDir;
         this.commandLine = commandLine;
@@ -78,15 +70,8 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     public SetupConfigItem() {
     }
 
-    public ArrayList<String> getInstalledComponents(TaskListener listener, String slaveRootPath){return Utils.getInstalledComponents(listener,slaveRootPath);}
-
-
-    public String getPreLaunchScript() {
-        return preLaunchScript;
-    }
-
-    public void setPreLaunchScript(String preLaunchScript) {
-        this.preLaunchScript = preLaunchScript;
+    public ArrayList<String> getInstalledComponents(TaskListener listener, FilePath slaveRootPath){
+        return Utils.getInstalledComponents(listener,slaveRootPath);
     }
 
     /**

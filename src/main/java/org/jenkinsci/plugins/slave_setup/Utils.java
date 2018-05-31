@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 public class Utils {
 
-    public static String fileName = "slave_setup.ini";
+    public static String configFileName = "slave_setup.ini";
 
     // New OS switching Method 25.05.18
         /*
@@ -27,41 +27,38 @@ public class Utils {
             This new static method replaces on SetupDeployer and SetupSlaveLauncher the execute and executeScript
             Shell instancing and executing respectively.
          */
+        //TODO: Rename it multiOsExecutor, can run in master if launcher is master linked.
     public static int remoteRun(Launcher launcher, TaskListener listener, String script, FilePath root) throws IOException, InterruptedException {
-        int r;
-        //listener.getLogger().println("Checking operating system of slave, isUnix: " + String.valueOf(launcher.isUnix()));
+        //31.5.18, Aaron: Remove int memory allocation. and remove code commented
+
         if (launcher.isUnix()) {
             /*
             Originally this plugin used only Shell(script) and shell.buildCommandLine(scriptfile)(this portion of code)
             to execute commands in SetupSlaveLauncher.java during the execution and SetupDeployer.java on executeScript
             method.
              */
-            //listener.getLogger().println("Slave is detected as Unix.");
             Shell shell = new Shell(script);
             FilePath scriptFile = shell.createScriptFile(root);
-            r = launcher.launch().cmds(shell.buildCommandLine(scriptFile)).stdout(listener).join();
+            return launcher.launch().cmds(shell.buildCommandLine(scriptFile)).stdout(listener).join();
         } else {
             /*
             We create a BatchFile obj instead a Shell classObject if the current OS is not Unix
             Also we comment those verbose printings about Slave's OS
              */
-            //listener.getLogger().println("Slave is detected as Windows.");
             BatchFile batch = new BatchFile(script);
             FilePath scriptFile = batch.createScriptFile(root);
-            r = launcher.launch().cmds(batch.buildCommandLine(scriptFile)).stdout(listener).join();
+            return launcher.launch().cmds(batch.buildCommandLine(scriptFile)).stdout(listener).join();
         }
-        return r;
+        
     }
-    public static ArrayList<String> getInstalledComponents(TaskListener listener,String slaveRootPath)
+    public static ArrayList<String> getInstalledComponents(TaskListener listener, FilePath slaveConfigPath)
     {
-
-        listener.getLogger().println("On Utils.getInstalledComponents");
-        String configPath = combinePaths(slaveRootPath,Utils.fileName);
+        //String configPath = combinePaths(slaveConfigPath,Utils.configFileName);
         ArrayList<String> installeds = new ArrayList<String>();
-        listener.getLogger().println(String.format("Config file to open: %s", configPath));
+        listener.getLogger().println(String.format("Config file to open: %s", slaveConfigPath));
         try
         {
-            BufferedReader br = new BufferedReader(new FileReader(configPath));
+            BufferedReader br = new BufferedReader(new InputStreamReader(slaveConfigPath.read()));
             String line;
             while ((line = br.readLine()) != null) {
                 installeds.add(line);
@@ -74,11 +71,10 @@ public class Utils {
         }
     }
 
-    public static boolean setInstalledComponents(ArrayList<String> installedComponents)
+    public static boolean setInstalledComponents(ArrayList<String> installedComponents,String slaveConfigPath)
     {
-        String filePath = jenkins.model.Jenkins.getInstance().getRootDir().toString();
         try {
-            File configFile = new File(filePath + Utils.fileName);
+            File configFile = new File(slaveConfigPath + Utils.configFileName);
             configFile.createNewFile();
             FileWriter fileHdl = new FileWriter(configFile, false);
             for(String line:installedComponents)
@@ -97,7 +93,7 @@ public class Utils {
     {
         String filePath = jenkins.model.Jenkins.getInstance().getRootDir().toString();
         try {
-            FileWriter fileHdl = new FileWriter(new File(filePath + Utils.fileName), true);
+            FileWriter fileHdl = new FileWriter(new File(filePath + Utils.configFileName), true);
             fileHdl.write(component);
             fileHdl.close();
             return true;
@@ -109,8 +105,41 @@ public class Utils {
 
     public static String combinePaths(String path1, String path2)
     {
+        // To return a path string get Os.Separator, and concatenate its.
         File file1 = new File(path1);
         File file2 = new File(file1, path2);
         return file2.getPath();
+    }
+
+    public static void displayInstalledComponents(TaskListener listener, ArrayList<String>installedComponents)
+    {
+        listener.getLogger().println("Installed components:");
+        if(installedComponents.size()>0)
+        {
+            for(String component:installedComponents){
+                listener.getLogger().println(component);
+            }
+            listener.getLogger().println();
+        }
+    }
+
+    public static boolean createConfigFile(FilePath root,TaskListener listener)
+    {
+        try
+        {
+            FilePath configFile = root.child(configFileName);
+            if(configFile != null){
+                listener.getLogger().println("Creating new config file :" + configFile.getRemote());
+                configFile.write();
+                return true;
+            }
+            listener.getLogger().println("Error getting configFile FilePath during creation.");
+            return false;
+
+        }catch(Exception ex)
+        {
+            listener.getLogger().println("Error during creating new config file :" + ex.getMessage());
+            return false;
+        }
     }
 }
