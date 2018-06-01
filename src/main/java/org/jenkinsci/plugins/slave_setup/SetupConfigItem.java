@@ -21,6 +21,8 @@ import java.util.ArrayList;
  */
 public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
 
+    public static final String DELIMITER = "<*>";
+
     /**
      * the prepare script code
      */
@@ -51,12 +53,16 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
      */
     private boolean prepareScriptExecuted = false;
 
+
+    /**
+
     /**
      * Constructor uesd to create the setup config instance
      *
      */
     @DataBoundConstructor
-    public SetupConfigItem(String prepareScript, File filesDir, String commandLine, boolean deployNow, String assignedLabelString) {
+    public SetupConfigItem(String prepareScript, File filesDir, String commandLine, boolean deployNow, 
+    String assignedLabelString) {
         this.prepareScript = prepareScript;
         this.filesDir = filesDir;
         this.commandLine = commandLine;
@@ -70,9 +76,6 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     public SetupConfigItem() {
     }
 
-    public ArrayList<String> getInstalledComponents(TaskListener listener, FilePath slaveRootPath){
-        return Utils.getInstalledComponents(listener,slaveRootPath);
-    }
 
     /**
      * Returns the prepare script code.
@@ -199,5 +202,19 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
         public String getDisplayName() {
             return "";
         }
+    }
+
+    /**
+     * Every ConfigItem have and unic identifier for content which will match with slave hashCode
+     */
+    public int hashCode(){
+        return (prepareScript + filesDir + commandLine).hashCode();
+    }
+
+    /**
+     * Usefull funtion to get same name as needs to be under slave cache.
+     */
+    public String remoteCache(){
+        return this.assignedLabelString + DELIMITER + this.hashCode();
     }
 }
