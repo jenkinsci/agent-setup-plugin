@@ -4,3 +4,9 @@
 target
 work
 /.idea/
+/.vscode/
+/.settings/
+pom.xml
+.classpath
+.factorypath
+.project
