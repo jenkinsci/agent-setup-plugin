@@ -66,7 +66,7 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
 
         // 25.05.18
         // New Os Check & Switch to execute targeted scripts.
-        r = Utils.remoteRun(launcher,listener,script,root);
+        r = Utils.multiOsExecutor(listener,script,root,null);
 
         if (r != 0) {
             throw new AbortException("Script failed with return code " + Integer.toString(r) + ".");

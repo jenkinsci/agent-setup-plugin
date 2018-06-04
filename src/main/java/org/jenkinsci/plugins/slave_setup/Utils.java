@@ -1,5 +1,6 @@
 package org.jenkinsci.plugins.slave_setup;
 
+import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Computer;
@@ -9,6 +10,7 @@ import hudson.tasks.BatchFile;
 import hudson.tasks.Shell;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -16,6 +18,7 @@ import java.util.regex.PatternSyntaxException;
 public class Utils {
 
     public static String configFileName = "slave_setup.ini";
+    // public static TaskListener listener;
 
     // New OS switching Method 25.05.18
     /*
@@ -30,12 +33,11 @@ public class Utils {
      * This new static method replaces on SetupDeployer and SetupSlaveLauncher the
      * execute and executeScript Shell instancing and executing respectively.
      */
-    // TODO: Rename it multiOsExecutor, can run in master if launcher is master
-    // linked.
-    public static int remoteRun(Launcher launcher, TaskListener listener, String script, FilePath root)
+    public static int multiOsExecutor(TaskListener listener, String script, FilePath root, EnvVars enviroment)
             throws IOException, InterruptedException {
         // 31.5.18, Aaron: Remove int memory allocation. and remove code commented
-
+        // 1.6.18 Aaron: Addition of enviroment variables support.
+        Launcher launcher = root.createLauncher(listener);
         if (launcher.isUnix()) {
             /*
              * Originally this plugin used only Shell(script) and
@@ -45,7 +47,8 @@ public class Utils {
              */
             Shell shell = new Shell(script);
             FilePath scriptFile = shell.createScriptFile(root);
-            return launcher.launch().cmds(shell.buildCommandLine(scriptFile)).stdout(listener).join();
+            return launcher.launch().cmds(shell.buildCommandLine(scriptFile)).pwd(root).envs(enviroment)
+                    .stdout(listener).join();
         } else {
             /*
              * We create a BatchFile obj instead a Shell classObject if the current OS is
@@ -53,7 +56,8 @@ public class Utils {
              */
             BatchFile batch = new BatchFile(script);
             FilePath scriptFile = batch.createScriptFile(root);
-            return launcher.launch().cmds(batch.buildCommandLine(scriptFile)).stdout(listener).join();
+            return launcher.launch().cmds(batch.buildCommandLine(scriptFile)).pwd(root).envs(enviroment)
+                    .stdout(listener).join();
         }
 
     }
@@ -81,7 +85,6 @@ public class Utils {
             fileHdl.close();
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
             return false;
         }
     }
@@ -94,16 +97,8 @@ public class Utils {
             fileHdl.close();
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
             return false;
         }
-    }
-
-    public static String combinePaths(String path1, String path2) {
-        // To return a path string get Os.Separator, and concatenate its.
-        File file1 = new File(path1);
-        File file2 = new File(file1, path2);
-        return file2.getPath();
     }
 
     public static void displayInstalledComponents(TaskListener listener, ArrayList<String> installedComponents) {
@@ -133,9 +128,54 @@ public class Utils {
         }
     }
 
-    public static boolean labelMatches(String pattern, Computer slave){
+    /**
+     * Label matching procedure Based on
+     * https://github.com/beerdn/slave-setup-plugin/commit/511b19f24d6a59902c6d6b6c838c7c8a85674d85
+     */
+    public static boolean labelMatches(String pattern, Computer slave) {
         Label configLabel = Label.get(pattern);
         return configLabel.matches(slave.getNode());
 
+    }
+
+    /**
+     * This function will print all messages we wan as INFO
+     */
+    /*
+     * public static void println(String message){
+     * Utils.listener.getLogger().println(message); }
+     */
+    public static String StringFy(Object obj) {
+
+        StringBuilder result = new StringBuilder();
+        try {
+            String newLine = System.getProperty("line.separator");
+
+            result.append(obj.getClass().getName());
+            result.append(" Object {");
+            result.append(newLine);
+
+            // determine fields declared in obj class only (no fields of superclass)
+            Field[] fields = obj.getClass().getDeclaredFields();
+
+            // print field names paired with their values
+            for (Field field : fields) {
+                result.append("  ");
+                try {
+                    result.append(field.getName());
+                    result.append(": ");
+                    field.setAccessible(true);
+                    // requires access to private field:
+                    result.append(field.get(obj));
+                } catch (IllegalAccessException ex) {
+                    System.out.println(ex);
+                }
+                result.append(newLine);
+            }
+            result.append("}");
+        } catch (Exception ex) {
+            result.append("Unable to get attributes: " + ex.getMessage());
+        }
+        return result.toString();
     }
 }

@@ -215,6 +215,6 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
      * Usefull funtion to get same name as needs to be under slave cache.
      */
     public String remoteCache(){
-        return this.assignedLabelString + DELIMITER + this.hashCode();
+        return this.assignedLabelString + SetupConfigItem.DELIMITER + this.hashCode();
     }
 }
