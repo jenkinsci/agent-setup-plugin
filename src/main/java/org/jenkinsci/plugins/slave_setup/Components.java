@@ -47,9 +47,9 @@ public class Components {
         this.remotePath = remoteRootPath;
         this.configFile = this.remotePath.child(FILENAME);
         try {
-            if (!this.remotePath.exists()) {
-                this.remotePath.write();
-                Components.println("New config created on " + this.remotePath.getRemote());
+            if (!this.configFile.exists()) {
+                this.configFile.write();
+                Components.println("New config created on " + this.configFile.getRemote());
                 newDeploy = true;
             }
         } catch (IOException e) {
@@ -183,8 +183,8 @@ public class Components {
         // At this point will close a stream and write all pending data into it.
         // after data is writen to remote disk close connection (if need it)
         try {
-            remotePath.write(StringUtils.join(cache, System.getProperty("line.separator")), "UTF-8");
-            // FileWriter fileHdl = new FileWriter(remotePath.getRemote(), false);
+            configFile.write(StringUtils.join(cache, System.getProperty("line.separator")), "UTF-8");
+            // FileWriter fileHdl = new FileWriter(configFile.getRemote(), false);
             // BufferedWriter writer = new BufferedWriter(fileHdl);
             // writer.write(StringUtils.join(cache, System.getProperty("line.separator")));
 
@@ -216,8 +216,8 @@ public class Components {
         //
         List<String> components;
         try {
-            components = getComponents(remotePath.readToString());
-            // InputStream fileContent = remotePath.read();
+            components = getComponents(configFile.readToString());
+            // InputStream fileContent = configFile.read();
             // BufferedReader readStream = new BufferedReader(fileContent);
             // components = getComponents(readStream);
             // readStream.close();
