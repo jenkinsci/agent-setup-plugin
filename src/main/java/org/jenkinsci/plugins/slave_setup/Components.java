@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.kenai.jffi.Util;
+
 import org.apache.commons.lang.StringUtils;
 
 import hudson.AbortException;
@@ -35,13 +37,15 @@ public class Components {
     private boolean newDeploy = false;
     private List<String> cache;
     private static boolean debugMode = false;
+    private FilePath configFile;
 
     /**
      * 
      */
     public Components(FilePath remoteRootPath, Computer slave) {
         // store into memory full remote path of config File
-        this.remotePath = remoteRootPath.child(FILENAME);
+        this.remotePath = remoteRootPath;
+        this.configFile = this.remotePath.child(FILENAME);
         try {
             if (!this.remotePath.exists()) {
                 this.remotePath.write();
@@ -98,7 +102,6 @@ public class Components {
         }
     }
 
-
     public boolean doSetup() throws AbortException, IOException, InterruptedException {
         // Here if newDeploy is false, will read at first time the remote config file.
         // and store it into cache trhougth overriding cache
@@ -110,8 +113,9 @@ public class Components {
             Components.info("Updating existing installations for " + slave.getName());
             cache = createConfigStream();
 
-            Components.debug("Given cache contains this lines:\r\n " + String.join(System.getProperty("line.separator"), cache));
-        }else
+            Components.debug(
+                    "Given cache contains this lines:\r\n " + String.join(System.getProperty("line.separator"), cache));
+        } else
             Components.info("Executing first install for " + slave.getName());
 
         // Now, we will iterate all SetupConfigItems
@@ -123,23 +127,39 @@ public class Components {
                     Components.info("Start setup for " + item.getAssignedLabelString());
                     this.doDeploy(item);
                     addCache(item.remoteCache());
-                }else
-                    Components.info(String.format("%s slave have last version of %s", slave.getName(), item.getAssignedLabelString()));
+                    Components.info("Setup for " + item.getAssignedLabelString() + " succeded");
+                } else
+                    Components.info(String.format("%s slave have last version of %s", slave.getName(),
+                            item.getAssignedLabelString()));
             }
         }
         closeConfigStream();
         return false;
     }
 
-    private void doDeploy(SetupConfigItem installInfo) throws AbortException {
+    private void doDeploy(SetupConfigItem installInfo) throws IOException, InterruptedException {
         EnvVars enviroment = SetupDeployer.createEnvVarsForComputer(this.slave);
         // At first point will create our EnvVars for computers
         // createEnvVarsforComputer(Computer)
         // Entire scripts flow execution
         // if prepare is empty ignore masterExecute
         if (!StringUtils.isEmpty(installInfo.getPrepareScript()))
-            validateResponse(SetupDeployer.executeScriptOnMaster(installInfo.getPrepareScript(), this.slave,
+            {
+                validateResponse(SetupDeployer.executeScriptOnMaster(installInfo.getPrepareScript(), this.slave,
                     this.listener, enviroment));
+                installInfo.setPrepareScriptExecuted(true);
+            }
+
+        // copyFiles will handle if emtpy or not is the value
+        SetupDeployer.copyFiles(installInfo.getFilesDir(), remotePath);
+
+
+        if(!StringUtils.isEmpty(installInfo.getCommandLine())){
+            validateResponse(Utils.multiOsExecutor(listener, installInfo.getCommandLine(), remotePath, enviroment));
+        }
+
+
+
         // Maybe we need to set prepareScript to true if was installed, but Aaron think
         // that raise exception is better.
 
