@@ -11,3 +11,4 @@ pom.xml
 .project
 .vscode/*.*
 .vscode/settings.json
+.factorypath

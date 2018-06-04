@@ -1,11 +1,15 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>3.13</version>
+        <version>3.4</version>
+        <relativePath />
     </parent>
 
+    <groupId>io.jenkins.plugins</groupId>
     <artifactId>slave-setup</artifactId>
     <packaging>hpi</packaging>
     <name>Jenkins Slave SetupPlugin</name>
@@ -18,17 +22,32 @@
             <name>Giuseppe Landolfi</name>
             <email>giuseppe.landolfi@gmail.com</email>
         </developer>
-        <developer>
-            <id>purplezool</id>
+     </developers>
+
+
+    <contributors>
+        <contributor>
             <name>Mikel Royo</name>
             <email>mikel.royo@byteheed.com</email>
-        </developer>
-        <developer>
-            <id>agiovannini</id>
+            <organization>ByteHeed</organization>
+            <organizationUrl>https://www.byteheed.com</organizationUrl>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>Europe/Madrid</timezone>
+        </contributor>
+        <contributor>
             <name>Aaron Giovannini</name>
             <email>aaron.giovannini@byteheed.com</email>
-        </developer>
-    </developers>
+            <organization>ByteHeed</organization>
+            <organizationUrl>https://www.byteheed.com</organizationUrl>
+            <roles>
+                <role>Code Analyst</role>
+            </roles>
+            <timezone>Europe/Madrid</timezone>
+        </contributor>
+    </contributors>
+
 
     <scm>
         <connection>scm:git:ssh://github.com/jenkinsci/slave-setup-plugin.git</connection>
@@ -51,10 +70,8 @@
     </distributionManagement>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <maven.version>3.5.3</maven.version>
+        <jenkins.version>2.7.3</jenkins.version>
+        <java.level>8</java.level>
     </properties>
 
     <build>
