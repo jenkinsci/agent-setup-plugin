@@ -33,7 +33,7 @@ public class SetupDeployer {
      */
     private static final Logger LOGGER = Logger.getLogger(SetupDeployer.class.getName());
 
-    public static String StringFy(Object obj){
+    public static String StringFy(Object obj) {
         return Utils.StringFy(obj);
     }
 
@@ -75,6 +75,46 @@ public class SetupDeployer {
     }
 
     /**
+     * Copy and execute script into remote
+     * 
+     * @param c               the computer to upload th files to
+     * @param root            the computer's target directory
+     * @param listener        the listener for logging etc.
+     * @param setupConfigItem the SetupConfigItem object containing the source dir
+     *                        and the command line
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    public static int copyAndExecute(Computer c, FilePath root, TaskListener listener, SetupConfigItem setupConfigItem)
+            throws IOException, InterruptedException {
+
+        // do not deploy if label of computer and config do not match.
+        // copy files
+        File sd = setupConfigItem.getFilesDir();
+        if (sd != null && StringUtils.isNotBlank(sd.getPath())) {
+            listener.getLogger().println("Copying setup script files from " + sd);
+            new FilePath(sd).copyRecursiveTo(root);
+        }
+
+        // execute command line
+        String cmdLine = setupConfigItem.getCommandLine();
+
+        // executeScript(c.getNode(), root, listener, cmdLine,
+        // createEnvVarsForComputer(c));
+        return Utils.multiOsExecutor(listener, cmdLine, root, createEnvVarsForComputer(c));
+    }
+
+
+    public static boolean copyFiles(File localPath, FilePath remotePath) throws IOException, InterruptedException{
+        if (localPath != null && StringUtils.isNotBlank(localPath.getPath())){
+            Components.info("copying files from " + localPath);
+            int tmp = new FilePath(localPath).copyRecursiveTo(remotePath);
+            return true;
+        }else
+            return false;
+    }
+
+    /**
      * @param c               the computer to upload th files to
      * @param root            the computer's target directory
      * @param listener        the listener for logging etc.
@@ -103,7 +143,8 @@ public class SetupDeployer {
             // execute command line
             String cmdLine = setupConfigItem.getCommandLine();
 
-            // executeScript(c.getNode(), root, listener, cmdLine, createEnvVarsForComputer(c));
+            // executeScript(c.getNode(), root, listener, cmdLine,
+            // createEnvVarsForComputer(c));
             Utils.multiOsExecutor(listener, cmdLine, root, createEnvVarsForComputer(c));
         } else {
             listener.getLogger()
@@ -143,7 +184,8 @@ public class SetupDeployer {
         }
         Label label = Label.get(assignedLabel);
 
-        // TODO: check it this link => https://github.com/beerdn/slave-setup-plugin/commit/511b19f24d6a59902c6d6b6c838c7c8a85674d85
+        // TODO: check it this link =>
+        // https://github.com/beerdn/slave-setup-plugin/commit/511b19f24d6a59902c6d6b6c838c7c8a85674d85
         return label.matches(c.getNode());
     }
 
@@ -157,28 +199,26 @@ public class SetupDeployer {
 
         listener.getLogger().println("DEBUG:On checklabels");
 
-        FastPrint(listener, String.format("Check args for %s\nComputer: %s\nSetupItem: %s\n", c.getNode().getDisplayName(), StringFy(c), setupConfigItem));
-
+        FastPrint(listener, String.format("Check args for %s\nComputer: %s\nSetupItem: %s\n",
+                c.getNode().getDisplayName(), StringFy(c), setupConfigItem));
 
         /*
-        try {
-            EnvVars cVars = c.getEnvironment();
-            listener.getLogger().println(cVars.firstKey());
-            for (String currentVar : cVars.values()) {
-                listener.getLogger().println("Enviroments " + currentVar);
-            }
-
-        } catch (Exception ex) {
-            listener.getLogger().println(String.format("Error getting node rootPath : %s", ex.getMessage()));
-            home = "Error Thrown";
-        }
-        */
-        //listener.getLogger().println(String.format("Slave RootPath: %s", c.getNode().getRootPath().getRemote()));
+         * try { EnvVars cVars = c.getEnvironment();
+         * listener.getLogger().println(cVars.firstKey()); for (String currentVar :
+         * cVars.values()) { listener.getLogger().println("Enviroments " + currentVar);
+         * }
+         * 
+         * } catch (Exception ex) {
+         * listener.getLogger().println(String.format("Error getting node rootPath : %s"
+         * , ex.getMessage())); home = "Error Thrown"; }
+         */
+        // listener.getLogger().println(String.format("Slave RootPath: %s",
+        // c.getNode().getRootPath().getRemote()));
         // PUT ME HEERE
         ArrayList<String> installedComponents = new ArrayList<String>();
         try {
-            //installedComponents = setupConfigItem.getInstalledComponents(listener,
-                    // c.getNode().getRootPath());
+            // installedComponents = setupConfigItem.getInstalledComponents(listener,
+            // c.getNode().getRootPath());
         } catch (Exception ex) {
             FastPrint(listener, String.format("values of node: " + StringFy(c.getNode())));
             listener.getLogger().println(String.format("Error getting Remote rootPath : %s", ex.getMessage()));
@@ -196,30 +236,30 @@ public class SetupDeployer {
         // Jenkins.getInstance().getLabel(setupConfigItem.getAssignedLabelString());
 
         listener.getLogger().println(String.format("AssignedLabel for node is : %s", assignedLabel));
-        String[]labels = assignedLabel.split("\\s+");
+        String[] labels = assignedLabel.split("\\s+");
 
-        for(String currentLabel:labels)
-        {
-            if(!installedComponents.contains(currentLabel))
-            {
-                
+        for (String currentLabel : labels) {
+            if (!installedComponents.contains(currentLabel)) {
+
                 listener.getLogger().println(String.format("%s in Node's assigned label.", assignedLabel));
                 return true;
             }
         }
-        
-        listener.getLogger().println(String.format("%s is NOT in Node's assigned label.Executing Script", assignedLabel));
+
+        listener.getLogger()
+                .println(String.format("%s is NOT in Node's assigned label.Executing Script", assignedLabel));
         return false;
 
-        //Label label = Label.get(assignedLabel);
-        //return label.matches(c.getNode());
+        // Label label = Label.get(assignedLabel);
+        // return label.matches(c.getNode());
     }
 
     /**
      * TODO: Deprecate me, use Utils.multiOsExecutor instead
      */
     @Deprecated
-    public void executeScript(TaskListener listener, FilePath root,  String cmdLine, EnvVars additionalEnvironment) throws IOException, InterruptedException {
+    public void executeScript(TaskListener listener, FilePath root, String cmdLine, EnvVars additionalEnvironment)
+            throws IOException, InterruptedException {
         if (StringUtils.isNotBlank(cmdLine)) {
             // String nodeName = node.getNodeName();
             // 28.05.18 Retrieving verbose printing avoiding noise during multilineScripts
@@ -228,7 +268,7 @@ public class SetupDeployer {
             // (StringUtils.isEmpty(nodeName) ? "master" : nodeName));
             // 25.05.18
             // New Os Check & Switch to execute targeted scripts.
-            int r = Utils.multiOsExecutor(listener, cmdLine, root,null);
+            int r = Utils.multiOsExecutor(listener, cmdLine, root, null);
             listener.getLogger().println("script executed successfully.");
         }
     }
@@ -273,17 +313,20 @@ public class SetupDeployer {
         }
     }
 
-    @Deprecated 
-    public boolean executePrepareScript(Computer c, SetupConfigItem config, TaskListener listener){
-        //TODO: This will run one script only, Copy above code without SetupConfig iteration
-        //TIP: you can improve syntax, and reutilization, moving instead copy  the inner code in iteration from above function.
-        //and finally return boolean to get if failed or not
+    @Deprecated
+    public boolean executePrepareScript(Computer c, SetupConfigItem config, TaskListener listener) {
+        // TODO: This will run one script only, Copy above code without SetupConfig
+        // iteration
+        // TIP: you can improve syntax, and reutilization, moving instead copy the inner
+        // code in iteration from above function.
+        // and finally return boolean to get if failed or not
         try {
             Components.println("Executing prepareScript");
             if (StringUtils.isBlank(config.getPrepareScript())) {
                 config.setPrepareScriptExecuted(true);
             } else if (checkLabelsForComputerOrNull(c, config, listener)) {
-                // boolean successful = executeScriptOnMaster(config.getPrepareScript(), c, listener);
+                // boolean successful = executeScriptOnMaster(config.getPrepareScript(), c,
+                // listener);
                 // config.setPrepareScriptExecuted(successful);
                 config.setPrepareScriptExecuted(true);
             }
@@ -293,45 +336,45 @@ public class SetupDeployer {
             return false;
         }
     }
-    
+
     @Deprecated
-    public void executePrepareScripts(Computer c, SetupConfig config, TaskListener listener, ArrayList<String>installedComponents) {
+    public void executePrepareScripts(Computer c, SetupConfig config, TaskListener listener,
+            ArrayList<String> installedComponents) {
         listener.getLogger().println("Executing PrepareScripts By BH");
         for (SetupConfigItem setupConfigItem : config.getSetupConfigItems()) {
             listener.getLogger().println("Checking config " + setupConfigItem.toString());
-            Utils.displayInstalledComponents(listener,installedComponents);
+            Utils.displayInstalledComponents(listener, installedComponents);
             if (StringUtils.isBlank(setupConfigItem.getPrepareScript())) {
                 setupConfigItem.setPrepareScriptExecuted(true);
             } else if (checkLabelsForComputerOrNull(c, setupConfigItem, listener)) {
-                // boolean successful = executeScriptOnMaster(setupConfigItem.getPrepareScript(), c, listener);
+                // boolean successful =
+                // executeScriptOnMaster(setupConfigItem.getPrepareScript(), c, listener);
                 setupConfigItem.setPrepareScriptExecuted(true);
             }
         }
     }
 
     /*
-    public void executePreLaunchScripts(Computer c, SetupConfig config, TaskListener listener) throws AbortException {
-        listener.getLogger().println("Executing PrelaunchScripts By BH");
-        for (SetupConfigItem setupConfigItem : config.getSetupConfigItems()) {
-
-            listener.getLogger().println("Checking config " + setupConfigItem.toString());
-
-            if (!StringUtils.isBlank(setupConfigItem.getPreLaunchScript())
-                    && checkLabels(c, setupConfigItem, listener)) {
-                boolean successful = executeScriptOnMaster(setupConfigItem.getPreLaunchScript(), c, listener);
-                if (!successful) {
-                    throw new AbortException("pre-launch script not executed successfully");
-                }
-            }
-        }
-    }
-    */
+     * public void executePreLaunchScripts(Computer c, SetupConfig config,
+     * TaskListener listener) throws AbortException {
+     * listener.getLogger().println("Executing PrelaunchScripts By BH"); for
+     * (SetupConfigItem setupConfigItem : config.getSetupConfigItems()) {
+     * 
+     * listener.getLogger().println("Checking config " +
+     * setupConfigItem.toString());
+     * 
+     * if (!StringUtils.isBlank(setupConfigItem.getPreLaunchScript()) &&
+     * checkLabels(c, setupConfigItem, listener)) { boolean successful =
+     * executeScriptOnMaster(setupConfigItem.getPreLaunchScript(), c, listener); if
+     * (!successful) { throw new
+     * AbortException("pre-launch script not executed successfully"); } } } }
+     */
 
     public static int executeScriptOnMaster(String script, Computer c, TaskListener listener, EnvVars enviroment) {
         // execute scripts on master relative to jenkins install dir
         Node node = Jenkins.getInstance();
         FilePath filePath = node.getRootPath();
-        Components.debug("Master given path is "+ filePath.toString());
+        Components.debug("Master given path is " + filePath.toString());
         try {
             return Utils.multiOsExecutor(listener, script, filePath, enviroment);
 
