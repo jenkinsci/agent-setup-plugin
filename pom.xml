@@ -10,13 +10,23 @@
     <packaging>hpi</packaging>
     <name>Jenkins Slave SetupPlugin</name>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Slave+Setup+Plugin</url>
-    <version>1.11.3-SNAPSHOT</version>
+    <version>1.11.3.1a</version>
 
     <developers>
         <developer>
             <id>peppe</id>
             <name>Giuseppe Landolfi</name>
             <email>giuseppe.landolfi@gmail.com</email>
+        </developer>
+        <developer>
+            <id>purplezool</id>
+            <name>Mikel Royo</name>
+            <email>mikel.royo@byteheed.com</email>
+        </developer>
+        <developer>
+            <id>agiovannini</id>
+            <name>Aaron Giovannini</name>
+            <email>aaron.giovannini@byteheed.com</email>
         </developer>
     </developers>
 
