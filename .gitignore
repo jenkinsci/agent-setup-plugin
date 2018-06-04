@@ -4,7 +4,7 @@
 target
 work
 /.idea/*
-.settings/*
+.settings
 pom.xml
 .classpath
 .factorypath
