@@ -18,10 +18,9 @@ import hudson.model.Computer;
 import hudson.model.TaskListener;
 
 /**
-*  Vamos a cahcear el delmitador de master y el delimitador de cada nodo mientras estamos ahaciendo su despliegue
+ * Vamos a cahcear el delmitador de master y el delimitador de cada nodo
+ * mientras estamos ahaciendo su despliegue
  */
-
-
 
 public class Components {
 
@@ -30,12 +29,11 @@ public class Components {
     // Temporall save variables until Class is finished
     private FilePath remotePath;
     private List<SetupConfigItem> configs; // I want this object to be null until constructor sets
-
-    private static boolean newDeploy = false;
     private Computer slave;
-    private List<String> cache;
-
     private static TaskListener listener;
+
+    private boolean newDeploy = false;
+    private List<String> cache;
     private static boolean debugMode = false;
 
     /**
@@ -48,12 +46,12 @@ public class Components {
             if (!this.remotePath.exists()) {
                 this.remotePath.write();
                 Components.println("New config created on " + this.remotePath.getRemote());
-                Components.newDeploy = true;
+                newDeploy = true;
             }
         } catch (IOException e) {
-            Components.println(e.getMessage());
+            Components.info(e.getMessage());
         } catch (InterruptedException e) {
-            Components.println(e.getMessage());
+            Components.info(e.getMessage());
         }
 
         this.slave = slave;
@@ -73,7 +71,7 @@ public class Components {
     // with no elements if cache is empty This will enable to work with cache always
     // without errors.
     private List<String> getCache() {
-        if (Components.newDeploy)
+        if (newDeploy)
             cache = new ArrayList<String>();
         return cache;
     }
@@ -83,49 +81,50 @@ public class Components {
     }
 
     private void addCache(String component) {
-        // Pongo getCache, para asegurarme de que si no hay cache cree una vacia para
-        // evitar exception.
-        if (!getCache().contains(component))
-            cache.add(component);
 
-        // We need to decide and advanced pattern to add and handle subversioning of
-        // saves
-        // When we have one, I can continue adding pseudo to this setCache
+        // slow logic to find old version installations
+        boolean writed = false;
 
+        // Execute getCache() at firstime, to prevent empty list
+        for (int i = 0; i < getCache().size(); i++) {
+            if (cache.get(i).contains(component.split(SetupConfigItem.DELIMITER)[0])) {
+                cache.set(i, component);
+                writed = true;
+                break;
+            }
+        }
+        if (!writed) {
+            cache.add(component); // if we don't write cache yet, will add at end
+        }
     }
 
-    public boolean doSetup() throws AbortException {
+
+    public boolean doSetup() throws AbortException, IOException, InterruptedException {
         // Here if newDeploy is false, will read at first time the remote config file.
         // and store it into cache trhougth overriding cache
         // Teorically this is first method that will be executed under Components Flow.
-        if (!Components.newDeploy) {
+        if (!newDeploy) {
             Components.debug("Isn't first installation getting cache");
             // At this point at some time, we do some setup in the past, as well,
             // need to get installed components from slave,
+            Components.info("Updating existing installations for " + slave.getName());
             cache = createConfigStream();
 
-            Components.debug("Given cache is " + String.join(System.getProperty("line.separator"), cache));
-        }
-
-        // At this point if cache was required to be updated cache contain installed
-        // components
-
-        // From item we get tagPatter, and execute matches on Slave.TagsString
+            Components.debug("Given cache contains this lines:\r\n " + String.join(System.getProperty("line.separator"), cache));
+        }else
+            Components.info("Executing first install for " + slave.getName());
 
         // Now, we will iterate all SetupConfigItems
         // if item.tagPattern match with Slave.TagString
         for (SetupConfigItem item : configs) {
             if (Utils.labelMatches(item.getAssignedLabelString(), slave)) {
-                if (!cache.contains(item.remoteCache())) {
+
+                if (!getCache().contains(item.remoteCache())) {
+                    Components.info("Start setup for " + item.getAssignedLabelString());
                     this.doDeploy(item);
-
-                    for (int i = 0; i < cache.size(); i++) {
-                        if (cache.get(i).contains(item.getAssignedLabelString()))
-                            cache.set(i, item.remoteCache());
-
-                    }
-
-                }
+                    addCache(item.remoteCache());
+                }else
+                    Components.info(String.format("%s slave have last version of %s", slave.getName(), item.getAssignedLabelString()));
             }
         }
         closeConfigStream();
@@ -138,19 +137,19 @@ public class Components {
         // createEnvVarsforComputer(Computer)
         // Entire scripts flow execution
         // if prepare is empty ignore masterExecute
-        if (!StringUtils.isEmpty(installInfo.getPrepareScript())) 
+        if (!StringUtils.isEmpty(installInfo.getPrepareScript()))
             validateResponse(SetupDeployer.executeScriptOnMaster(installInfo.getPrepareScript(), this.slave,
                     this.listener, enviroment));
-            // Maybe we need to set prepareScript to true if was installed, but Aaron think
-            // that raise exception is better.
+        // Maybe we need to set prepareScript to true if was installed, but Aaron think
+        // that raise exception is better.
 
-            // First script es prepare under master
+        // First script es prepare under master
 
-            // continue with deploy files to slave
+        // continue with deploy files to slave
 
-           // Execute script in slave
+        // Execute script in slave
         this.cache.add(installInfo.remoteCache());
-        
+
     }
 
     private void validateResponse(int r) throws AbortException {
@@ -174,22 +173,22 @@ public class Components {
         }
     }
 
-    private List<String> getComponents(String contentString){
+    private List<String> getComponents(String contentString) {
         return new ArrayList(Arrays.asList(contentString.split(System.getProperty("line.separator"))));
     }
 
     // private List<String> getComponents(String readerStream) {
-    //     ArrayList<String> components = new ArrayList<String>();
-    //     try {
-    //         String line;
-    //         while ((line = readerStream.readLine()) != null) {
-    //             components.add(line);
-    //         }
+    // ArrayList<String> components = new ArrayList<String>();
+    // try {
+    // String line;
+    // while ((line = readerStream.readLine()) != null) {
+    // components.add(line);
+    // }
 
-    //     } catch (Exception ex) {
-    //         Components.println("Components:getComponents::" + ex.getMessage());
-    //     }
-    //     return components;
+    // } catch (Exception ex) {
+    // Components.println("Components:getComponents::" + ex.getMessage());
+    // }
+    // return components;
     // }
 
     private List<String> createConfigStream() {
@@ -210,11 +209,10 @@ public class Components {
         return components;
     }
 
-
     /**
      * @deprecated use Components.info or Components.debug instead will handle
-     *             stdout if debugMode enabled or not.
-     * Actually this is redirected to Components.info.
+     *             stdout if debugMode enabled or not. Actually this is redirected
+     *             to Components.info.
      */
     @Deprecated
     public static void println(String message) {
@@ -239,6 +237,3 @@ public class Components {
         Components.debugMode = false;
     }
 }
-
-
-
