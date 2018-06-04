@@ -18,6 +18,17 @@ import java.util.regex.PatternSyntaxException;
 public class Utils {
 
     public static String configFileName = "slave_setup.ini";
+    
+    
+    public static String osLineSeparator(boolean isUnix){
+        return isUnix ? "\n" : "\r\n";
+    }
+
+    public static String osLineSeparator(String someFullPath){
+        Components.debug("incoming path to get OS " + someFullPath);
+        return Utils.osLineSeparator(someFullPath.startsWith("/"));
+    }
+
     // public static TaskListener listener;
 
     // New OS switching Method 25.05.18

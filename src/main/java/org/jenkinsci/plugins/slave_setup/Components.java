@@ -12,6 +12,7 @@ import java.util.List;
 import com.kenai.jffi.Util;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -38,6 +39,8 @@ public class Components {
     private List<String> cache;
     private static boolean debugMode = false;
     private FilePath configFile;
+    private String localSeparator;
+    private String remoteSeparator;
 
     /**
      * 
@@ -58,8 +61,10 @@ public class Components {
             Components.info(e.getMessage());
         }
 
+        this.remoteSeparator = Utils.osLineSeparator(this.remotePath.toString());
         this.slave = slave;
         this.configs = SetupConfig.get().getSetupConfigItems();
+        this.localSeparator = Utils.osLineSeparator(SystemUtils.IS_OS_UNIX);
 
     }
 
@@ -75,7 +80,7 @@ public class Components {
     // with no elements if cache is empty This will enable to work with cache always
     // without errors.
     private List<String> getCache() {
-        if (newDeploy)
+        if (cache == null)
             cache = new ArrayList<String>();
         return cache;
     }
@@ -89,6 +94,10 @@ public class Components {
         // slow logic to find old version installations
         boolean writed = false;
 
+        if (getCache().contains(component)) {
+            return;
+        }
+
         // Execute getCache() at firstime, to prevent empty list
         for (int i = 0; i < getCache().size(); i++) {
             if (cache.get(i).contains(component.split(SetupConfigItem.DELIMITER)[0])) {
@@ -97,7 +106,7 @@ public class Components {
                 break;
             }
         }
-        if (!writed) {
+        if (writed != true) {
             cache.add(component); // if we don't write cache yet, will add at end
         }
     }
@@ -113,8 +122,7 @@ public class Components {
             Components.info("Updating existing installations for " + slave.getName());
             cache = createConfigStream();
 
-            Components.debug(
-                    "Given cache contains this lines:\r\n " + String.join(System.getProperty("line.separator"), cache));
+            Components.debug("Given cache contains this lines:\r\n " + String.join(remoteSeparator, cache));
         } else
             Components.info("Executing first install for " + slave.getName());
 
@@ -126,7 +134,6 @@ public class Components {
                 if (!getCache().contains(item.remoteCache())) {
                     Components.info("Start setup for " + item.getAssignedLabelString());
                     this.doDeploy(item);
-                    addCache(item.remoteCache());
                     Components.info("Setup for " + item.getAssignedLabelString() + " succeded");
                 } else
                     Components.info(String.format("%s slave have last version of %s", slave.getName(),
@@ -143,22 +150,18 @@ public class Components {
         // createEnvVarsforComputer(Computer)
         // Entire scripts flow execution
         // if prepare is empty ignore masterExecute
-        if (!StringUtils.isEmpty(installInfo.getPrepareScript()))
-            {
-                validateResponse(SetupDeployer.executeScriptOnMaster(installInfo.getPrepareScript(), this.slave,
+        if (!StringUtils.isEmpty(installInfo.getPrepareScript())) {
+            validateResponse(SetupDeployer.executeScriptOnMaster(installInfo.getPrepareScript(), this.slave,
                     this.listener, enviroment));
-                installInfo.setPrepareScriptExecuted(true);
-            }
+            installInfo.setPrepareScriptExecuted(true);
+        }
 
         // copyFiles will handle if emtpy or not is the value
         SetupDeployer.copyFiles(installInfo.getFilesDir(), remotePath);
 
-
-        if(!StringUtils.isEmpty(installInfo.getCommandLine())){
+        if (!StringUtils.isEmpty(installInfo.getCommandLine())) {
             validateResponse(Utils.multiOsExecutor(listener, installInfo.getCommandLine(), remotePath, enviroment));
         }
-
-
 
         // Maybe we need to set prepareScript to true if was installed, but Aaron think
         // that raise exception is better.
@@ -168,7 +171,7 @@ public class Components {
         // continue with deploy files to slave
 
         // Execute script in slave
-        this.cache.add(installInfo.remoteCache());
+        this.addCache(installInfo.remoteCache());
 
     }
 
@@ -183,7 +186,9 @@ public class Components {
         // At this point will close a stream and write all pending data into it.
         // after data is writen to remote disk close connection (if need it)
         try {
-            configFile.write(StringUtils.join(cache, System.getProperty("line.separator")), "UTF-8");
+            Components.debug(
+                    String.format("Updating %s with\n%s", this.configFile, StringUtils.join(getCache(), "\r\n")));
+            configFile.write(StringUtils.join(cache, this.remoteSeparator), "UTF-8");
             // FileWriter fileHdl = new FileWriter(configFile.getRemote(), false);
             // BufferedWriter writer = new BufferedWriter(fileHdl);
             // writer.write(StringUtils.join(cache, System.getProperty("line.separator")));
@@ -193,40 +198,16 @@ public class Components {
         }
     }
 
-    private List<String> getComponents(String contentString) {
-        return new ArrayList(Arrays.asList(contentString.split(System.getProperty("line.separator"))));
-    }
-
-    // private List<String> getComponents(String readerStream) {
-    // ArrayList<String> components = new ArrayList<String>();
-    // try {
-    // String line;
-    // while ((line = readerStream.readLine()) != null) {
-    // components.add(line);
-    // }
-
-    // } catch (Exception ex) {
-    // Components.println("Components:getComponents::" + ex.getMessage());
-    // }
-    // return components;
-    // }
-
     private List<String> createConfigStream() {
         // Open Stream to config file, read it, close stream, but not connection
         //
-        List<String> components;
         try {
-            components = getComponents(configFile.readToString());
-            // InputStream fileContent = configFile.read();
-            // BufferedReader readStream = new BufferedReader(fileContent);
-            // components = getComponents(readStream);
-            // readStream.close();
-            // fileContent.close();
+            return new ArrayList(Arrays.asList(this.configFile.readToString().split(this.remoteSeparator)));
+
         } catch (Exception ex) {
-            components = null;
-            Components.println("Components:createConfigStream::" + ex.getMessage());
+            Components.info("Components:createConfigStream::" + ex.getMessage());
+            return null;
         }
-        return components;
     }
 
     /**

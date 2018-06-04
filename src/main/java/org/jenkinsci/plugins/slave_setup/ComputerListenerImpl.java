@@ -66,8 +66,7 @@ public class ComputerListenerImpl extends ComputerListener {
         Components.setLogger(listener); // If you remove this line will stop printing info 
         Components.enableDebug();
 
-        Components.println("Start preOnline Procedures, ");
-
+        Components.info("Start preOnline Procedures, ");
         Components manager= new Components(root, c);
         manager.doSetup();
         Components.info("Setup Ended");

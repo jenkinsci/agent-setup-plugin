@@ -21,7 +21,7 @@ import java.util.ArrayList;
  */
 public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
 
-    public static final String DELIMITER = "<*>";
+    public static final String DELIMITER = "¼";
 
     /**
      * the prepare script code
