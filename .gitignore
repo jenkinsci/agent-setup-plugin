@@ -3,10 +3,11 @@
 *.iws
 target
 work
-/.idea/
-/.vscode/
-/.settings/
+/.idea/*
+.settings/*
 pom.xml
 .classpath
 .factorypath
 .project
+.vscode/*.*
+.vscode/settings.json
