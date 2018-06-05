@@ -12,42 +12,45 @@ import hudson.tasks.Shell;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
+/**
+ * Static methods class container used across the code.
+ * 
+ * @author ByteHeed:
+ * @author Mikel Royo Gutierrez
+ * @author Aaron Giovannini
+ */
 public class Utils {
 
-    public static String configFileName = "slave_setup.ini";
-    
-    
-    public static String osLineSeparator(boolean isUnix){
+    /**
+     * With given boolean for isUnix operating System, returns OS end of line
+     * separator
+     */
+    public static String osLineSeparator(boolean isUnix) {
         return isUnix ? "\n" : "\r\n";
     }
 
-    public static String osLineSeparator(String someFullPath){
+    /**
+     * Given full path from OS, returns os End of line separator
+     */
+    public static String osLineSeparator(String someFullPath) {
         Components.debug("incoming path to get OS " + someFullPath);
         return Utils.osLineSeparator(someFullPath.startsWith("/"));
     }
 
-    // public static TaskListener listener;
-
-    // New OS switching Method 25.05.18
     /*
-     * Added Unix and Win32 Platform Handling to add support to Windows OSs by using
-     * the BathFile obj letting us to configure automated WIN machines on our
+     * Added Unix and Win32 Platform Handling to add support to Windows OS by using
+     * the BatchFile obj letting us to configure automated WIN machines on our
      * Integration enviroments. Observed that both Shell and BatchFile are heritages
      * from CommandInterpreter so we added the BatchFile for WIN OSs support.
      * 
-     * We decided to fork and add this small portion of code instead creating a new
-     * one.
-     * 
      * This new static method replaces on SetupDeployer and SetupSlaveLauncher the
      * execute and executeScript Shell instancing and executing respectively.
+     * 
      */
     public static int multiOsExecutor(TaskListener listener, String script, FilePath root, EnvVars enviroment)
             throws IOException, InterruptedException {
-        // 31.5.18, Aaron: Remove int memory allocation. and remove code commented
-        // 1.6.18 Aaron: Addition of enviroment variables support.
+
         Launcher launcher = root.createLauncher(listener);
         if (launcher.isUnix()) {
             /*
@@ -72,75 +75,12 @@ public class Utils {
         }
 
     }
-    /*
-     * public static ArrayList<String> getInstalledComponents(TaskListener listener,
-     * FilePath slaveConfigPath) { //String configPath =
-     * combinePaths(slaveConfigPath,Utils.configFileName); ArrayList<String>
-     * installeds = new ArrayList<String>();
-     * listener.getLogger().println(String.format("Config file to open: %s",
-     * slaveConfigPath)); try { BufferedReader br = new BufferedReader(new
-     * InputStreamReader(slaveConfigPath.read())); String line; while ((line =
-     * br.readLine()) != null) { installeds.add(line); } br.close(); return
-     * installeds; }catch(Exception ex) {
-     * listener.getLogger().println(ex.getMessage()); return installeds; } }
-     */
-
-    public static boolean setInstalledComponents(ArrayList<String> installedComponents, String slaveConfigPath) {
-        try {
-            File configFile = new File(slaveConfigPath + Utils.configFileName);
-            configFile.createNewFile();
-            FileWriter fileHdl = new FileWriter(configFile, false);
-            for (String line : installedComponents) {
-                fileHdl.write(line);
-            }
-            fileHdl.close();
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
-    public static boolean addInstalledComponent(String component) {
-        String filePath = jenkins.model.Jenkins.getInstance().getRootDir().toString();
-        try {
-            FileWriter fileHdl = new FileWriter(new File(filePath + Utils.configFileName), true);
-            fileHdl.write(component);
-            fileHdl.close();
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
-    public static void displayInstalledComponents(TaskListener listener, ArrayList<String> installedComponents) {
-        listener.getLogger().println("Installed components:");
-        if (installedComponents.size() > 0) {
-            for (String component : installedComponents) {
-                listener.getLogger().println(component);
-            }
-            listener.getLogger().println();
-        }
-    }
-
-    public static boolean createConfigFile(FilePath root, TaskListener listener) {
-        try {
-            FilePath configFile = root.child(configFileName);
-            if (configFile != null) {
-                listener.getLogger().println("Creating new config file :" + configFile.getRemote());
-                configFile.write();
-                return true;
-            }
-            listener.getLogger().println("Error getting configFile FilePath during creation.");
-            return false;
-
-        } catch (Exception ex) {
-            listener.getLogger().println("Error during creating new config file :" + ex.getMessage());
-            return false;
-        }
-    }
 
     /**
-     * Label matching procedure Based on
+     * Improved function, this will check if label matches with one of slave labels or
+     * Will match if some reggex matches with all slave labels
+     * 
+     * 
      * https://github.com/beerdn/slave-setup-plugin/commit/511b19f24d6a59902c6d6b6c838c7c8a85674d85
      */
     public static boolean labelMatches(String pattern, Computer slave) {
@@ -150,11 +90,10 @@ public class Utils {
     }
 
     /**
-     * This function will print all messages we wan as INFO
-     */
-    /*
-     * public static void println(String message){
-     * Utils.listener.getLogger().println(message); }
+     * Idea from https://stackoverflow.com/questions/1526826/printing-all-variables-value-from-a-class
+     * 
+     * This class prints entire properies, methods, from any object, Useful to debug unkown objects
+     * 
      */
     public static String StringFy(Object obj) {
 

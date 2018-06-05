@@ -15,12 +15,11 @@ import hudson.model.Computer;
 import hudson.model.TaskListener;
 
 /**
- * Vamos a cachear el delmitador de master y el delimitador de cada nodo
- * mientras estamos ahaciendo su despliegue
- * 
  * We are going to store in cache the master delimiter and each node delimiter
  * while they are deployed.
- * @author ByteHeed
+ * @author ByteHeed:
+ *      @author Mikel Royo Gutierrez
+ *      @author Aaron Giovannini
  */
 
 public class Components {
@@ -39,8 +38,8 @@ public class Components {
 
     /**
      * 
-     * TODO: Add contruction description Check if config exists and create, then
-     * store al remote objects to be used at deploy time
+     * Add construction description, Checks if config exists and creates it, then
+     * store all remote objects to be used at deploy time
      * 
      * @throws InterruptedException
      * @throws IOException
@@ -62,8 +61,8 @@ public class Components {
     }
 
     /**
-     * Check if slave contains some setup configured false, means that is first time
-     * connection or any designed setup // If we want verbose just set listener and
+     * Check if slave contains some setup configured as false,it means that is first time
+     * connection or any designed setup. If we want verbose just set listener and
      * verbose will work
      */
     public boolean newDeploy() {
@@ -71,14 +70,14 @@ public class Components {
     }
 
     /**
-     * Required method, to define logging procedures
+     * Required method to define logging procedures
      */
     public static void setLogger(TaskListener listener) {
         Components.listener = listener;
     }
 
     /**
-     * Returns current cache, if null will create one empty
+     * Returns current cache, if null will create new one
      */
     private List<String> getCache() {
         if (cache == null)
@@ -87,8 +86,8 @@ public class Components {
     }
 
     /**
-     * Append element to cache, and prevent to create duplicateds with diferent
-     * versions or same
+     * Appends element to cache, and prevents to create duplicated items with diferent
+     *  or same  versions.
      */
     private void addCache(String component) {
 
@@ -113,7 +112,7 @@ public class Components {
     }
 
     /**
-     * Slave setup flow, here, iterate all SetupItems and if not installed jet, will
+     * Slave setup flow, here, the method iterates all SetupItems and if not installed jet, will
      * call doDeploy
      */
     public boolean doSetup() throws AbortException, IOException, InterruptedException {
@@ -143,8 +142,8 @@ public class Components {
     }
 
     /**
-     * Entire Setup flow for one Item First, will execute scripts on master Second,
-     * will deploy files to slave Third, Will run slave scrfipts
+     * Entire Setup flow for one Item ,it will execute scripts on master,
+     * deploy files to slave and run slave scripts
      * 
      * @throws InterruptedException
      * @throws IOException
@@ -163,7 +162,7 @@ public class Components {
         SetupDeployer.copyFiles(installInfo.getFilesDir(), remotePath);
 
         if (!StringUtils.isEmpty(installInfo.getCommandLine())) {
-            // If we had slave script, will cal now.
+            // If we had slave script, will call now.
             validateResponse(
                     Utils.multiOsExecutor(Components.listener, installInfo.getCommandLine(), remotePath, enviroment));
         }
@@ -175,8 +174,8 @@ public class Components {
      * TODO: Update-me Only works on Unix Operating Systems, this will use some unix
      * commands to clear temporally data
      * 
-     * If file had more than 5 minutes in last modified tag, from OS, will be
-     * removed Only will remove files containing jenkins in name
+     * If file has more than 5 minutes in the last modified tag, it will be
+     * removed. Only will remove files containing jenkins in name
      * 
      * This function require at least (find) binary to be installed
      * 
@@ -217,7 +216,7 @@ public class Components {
     }
 
     /**
-     * Unlink remote file, after write pending cache
+     * Unlink remote file, after writing pending cache
      * 
      * @throws InterruptedException
      * @throws IOException
