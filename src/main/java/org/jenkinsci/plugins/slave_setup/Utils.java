@@ -11,7 +11,6 @@ import hudson.tasks.Shell;
 
 import java.io.*;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 
 /**
  * Static methods class container used across the code.
