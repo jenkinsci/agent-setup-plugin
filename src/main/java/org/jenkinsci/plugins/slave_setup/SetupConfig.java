@@ -5,6 +5,7 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.model.*;
 import hudson.model.labels.LabelAtom;
+import hudson.slaves.SlaveComputer;
 import hudson.util.FormValidation;
 import hudson.util.LogTaskListener;
 import jenkins.model.GlobalConfiguration;
@@ -31,7 +32,7 @@ public class SetupConfig extends GlobalConfiguration {
     private static final Logger LOGGER = Logger.getLogger(Descriptor.class.getName());
 
     private List<SetupConfigItem> setupConfigItems = new ArrayList<SetupConfigItem>();
-    
+
     public SetupConfig() {
         load();
     }
@@ -42,28 +43,16 @@ public class SetupConfig extends GlobalConfiguration {
 
     public void setSetupConfigItems(List<SetupConfigItem> setupConfigItems) {
         this.setupConfigItems = setupConfigItems;
-    }   
+    }
 
-    
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
-        req.bindJSON(this,json);
+        req.bindJSON(this, json);
         save();
 
-        SetupDeployer deployer = new SetupDeployer();
+        Components.setLogger(new LogTaskListener(LOGGER, Level.ALL));
 
-        // execute prepareScripts
-        deployer.executePrepareScripts(null, this, new LogTaskListener(LOGGER, Level.ALL),new ArrayList<String>());
-
-        List<Computer> allActiveSlaves = deployer.getAllActiveSlaves();
-
-        for (SetupConfigItem setupConfigItem : this.setupConfigItems) {
-            if(setupConfigItem.getDeployNow()) {
-                deployer.deployToComputers(allActiveSlaves, setupConfigItem);
-            }
-        }
-
-        return true;
+        return Components.doSetups(Utils.getAllActiveSlaves());
     }
 
     public static SetupConfig get() {
@@ -92,20 +81,19 @@ public class SetupConfig extends GlobalConfiguration {
 
     public FormValidation doCheckFilesDir(@QueryParameter String value) {
         Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
-        if (Util.fixEmpty(value)==null)
-        {
+        if (Util.fixEmpty(value) == null) {
             return FormValidation.ok(); // no value
         }
 
         if (!new File(value).isDirectory()) {
-            return FormValidation.error("Directory "+value+" doesn't exist");
+            return FormValidation.error("Directory " + value + " doesn't exist");
         }
 
         return FormValidation.ok();
     }
 
     public FormValidation doCheckAssignedLabelString(@QueryParameter String value) {
-        if (Util.fixEmpty(value)==null) {
+        if (Util.fixEmpty(value) == null) {
             return FormValidation.ok(); // nothing typed yet
         }
 
@@ -122,7 +110,8 @@ public class SetupConfig extends GlobalConfiguration {
             for (LabelAtom a : l.listAtoms()) {
                 if (a.isEmpty()) {
                     LabelAtom nearest = LabelAtom.findNearest(a.getName());
-                    return FormValidation.warning(Messages.AbstractProject_AssignedLabelString_NoMatch_DidYouMean(a.getName(),nearest.getDisplayName()));
+                    return FormValidation.warning(Messages.AbstractProject_AssignedLabelString_NoMatch_DidYouMean(
+                            a.getName(), nearest.getDisplayName()));
                 }
             }
             return FormValidation.warning(Messages.AbstractProject_AssignedLabelString_NoMatch());
@@ -131,8 +120,8 @@ public class SetupConfig extends GlobalConfiguration {
     }
 
     /**
-     * Utility class for taking the current input value and computing a list
-     * of potential terms to match against the list of defined labels.
+     * Utility class for taking the current input value and computing a list of
+     * potential terms to match against the list of defined labels.
      */
     static class AutoCompleteSeeder {
         private String source;
@@ -160,7 +149,7 @@ public class SetupConfig extends GlobalConfiguration {
                 } else {
                     int space = source.lastIndexOf(' ');
                     if (space > -1) {
-                        terms.add(source.substring(space+1));
+                        terms.add(source.substring(space + 1));
                     } else {
                         terms.add(source);
                     }

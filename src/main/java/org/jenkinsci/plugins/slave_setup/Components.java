@@ -17,9 +17,10 @@ import hudson.model.TaskListener;
 /**
  * We are going to store in cache the master delimiter and each node delimiter
  * while they are deployed.
+ * 
  * @author ByteHeed:
- *      @author Mikel Royo Gutierrez
- *      @author Aaron Giovannini
+ * @author Mikel Royo Gutierrez
+ * @author Aaron Giovannini
  */
 
 public class Components {
@@ -27,7 +28,7 @@ public class Components {
     private final String FILENAME = "slave_setup.ini";
 
     private FilePath remotePath;
-    private List<SetupConfigItem> configs; 
+    private List<SetupConfigItem> configs;
     private Computer slave;
     private static TaskListener listener;
 
@@ -61,9 +62,9 @@ public class Components {
     }
 
     /**
-     * Check if slave contains some setup configured as false,it means that is first time
-     * connection or any designed setup. If we want verbose just set listener and
-     * verbose will work
+     * Check if slave contains some setup configured as false,it means that is first
+     * time connection or any designed setup. If we want verbose just set listener
+     * and verbose will work
      */
     public boolean newDeploy() {
         return this.getCache().size() > 0;
@@ -86,8 +87,8 @@ public class Components {
     }
 
     /**
-     * Appends element to cache, and prevents to create duplicated items with diferent
-     *  or same  versions.
+     * Appends element to cache, and prevents to create duplicated items with
+     * diferent or same versions.
      */
     private void addCache(String component) {
 
@@ -112,8 +113,8 @@ public class Components {
     }
 
     /**
-     * Slave setup flow, here, the method iterates all SetupItems and if not installed jet, will
-     * call doDeploy
+     * Slave setup flow, here, the method iterates all SetupItems and if not
+     * installed jet, will call doDeploy
      */
     public boolean doSetup() throws AbortException, IOException, InterruptedException {
         if (!this.newDeploy()) {
@@ -142,8 +143,29 @@ public class Components {
     }
 
     /**
-     * Entire Setup flow for one Item ,it will execute scripts on master,
-     * deploy files to slave and run slave scripts
+     * 
+     */
+    public static boolean doSetups(List<Computer> activeSlaves) {
+        boolean succeded = true;
+        for (Computer slave : activeSlaves) {
+            if (slave.isOffline()) {
+                Components.info(slave.getName() + " is offline");
+                continue;
+            }
+            try {
+                Components manager = new Components(slave.getNode().getRootPath(), slave);
+                manager.doSetup();
+                manager.clearTemporally();
+            } catch (Exception ex) {
+                Components.info(String.format("Failed to configure %s\nErr:%s", slave.getName(), ex.getMessage()));
+                succeded = false;
+            }
+        }
+
+        return succeded;
+    }
+
+    /** files to slave and run slave scripts
      * 
      * @throws InterruptedException
      * @throws IOException
@@ -153,10 +175,11 @@ public class Components {
 
         if (!StringUtils.isEmpty(installInfo.getPrepareScript())) {
             // If isn't empty script will execute on master
-            validateResponse(SetupDeployer.executeScriptOnMaster(installInfo.getPrepareScript(), this.slave,
-                    Components.listener, enviroment));
+            validateResponse(
+                    SetupDeployer.executeScriptOnMaster(Components.listener, installInfo.getPrepareScript(), enviroment));
             installInfo.setPrepareScriptExecuted(true);
         }
+                    
 
         // Copy files from master to slave (only if option contains some path)
         SetupDeployer.copyFiles(installInfo.getFilesDir(), remotePath);
@@ -174,8 +197,8 @@ public class Components {
      * TODO: Update-me Only works on Unix Operating Systems, this will use some unix
      * commands to clear temporally data
      * 
-     * If file has more than 5 minutes in the last modified tag, it will be
-     * removed. Only will remove files containing jenkins in name
+     * If file has more than 5 minutes in the last modified tag, it will be removed.
+     * Only will remove files containing jenkins in name
      * 
      * This function require at least (find) binary to be installed
      * 
@@ -189,7 +212,7 @@ public class Components {
         String clearTmp = "find /tmp -type f -atime +10 -delete -iname *jenkins*.sh -maxdepth 0";
         EnvVars environ = SetupDeployer.createEnvVarsForComputer(this.slave);
 
-        if (this.remotePath.toString().startsWith("/")) {
+        if (this.remotePath.getRemote().startsWith("/")) {
             // Clear slave temporally data
             Components.info("Clearing temporally data on " + this.slave.getName());
             validateResponse(Utils.multiOsExecutor(Components.listener, clearTmp, this.remotePath, environ));
@@ -198,7 +221,7 @@ public class Components {
         if (SystemUtils.IS_OS_UNIX) {
             // Clear master temporally data
             Components.info("Clearing temporally data on jenkins master");
-            validateResponse(SetupDeployer.executeScriptOnMaster(clearTmp, this.slave, Components.listener, environ));
+            validateResponse(SetupDeployer.executeScriptOnMaster(Components.listener, clearTmp, environ));
         }
         Components.debug("Finished temporal data removed");
     }

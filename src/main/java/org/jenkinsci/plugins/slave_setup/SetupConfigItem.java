@@ -2,19 +2,19 @@ package org.jenkinsci.plugins.slave_setup;
 
 import antlr.ANTLRException;
 import hudson.Extension;
-import hudson.FilePath;
+// import hudson.FilePath;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
-import hudson.model.Describable;
+// import hudson.model.Describable;
 import hudson.model.Descriptor;
-import hudson.model.TaskListener;
+// import hudson.model.TaskListener;
 import hudson.model.labels.LabelAtom;
 import hudson.model.labels.LabelExpression;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
-import java.util.ArrayList;
+// import java.util.ArrayList;
 
 /**
  * Represents a setup config for one set of labels. It may have its own prepare script, files to copy and command line.
@@ -187,7 +187,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     }
 
     /**
-     * sets the assigned slaves' labels
+     * sets the assigned slave's labels
      *
      * @param assignedLabelString
      */
@@ -205,14 +205,14 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     }
 
     /**
-     * Every ConfigItem have and unic identifier for content which will match with slave hashCode
+     * Every ConfigItem have a unique identifier for content which will match with slave hashCode
      */
     public int hashCode(){
         return (prepareScript + filesDir + commandLine).hashCode();
     }
 
     /**
-     * Usefull funtion to get same name as needs to be under slave cache.
+     * Useful function to get same name as needs to be under slave cache.
      */
     public String remoteCache(){
         return this.assignedLabelString + SetupConfigItem.DELIMITER + this.hashCode();

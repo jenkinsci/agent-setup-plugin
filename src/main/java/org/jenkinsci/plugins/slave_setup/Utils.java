@@ -8,9 +8,11 @@ import hudson.model.Label;
 import hudson.model.TaskListener;
 import hudson.tasks.BatchFile;
 import hudson.tasks.Shell;
+import jenkins.model.Jenkins;
 
 import java.io.*;
 import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  * Static methods class container used across the code.
@@ -127,4 +129,24 @@ public class Utils {
         }
         return result.toString();
     }
+
+    /**
+     * Gets all active (ONLINE) slaves running on the all jenkins instance.
+     * @return List of Computer containing the current active slaves.
+     */
+    public static List<Computer> getAllActiveSlaves() {
+        final List<Computer> computers = Arrays.asList(Jenkins.getInstance().getComputers());
+
+        List<Computer> activeComputers = new ArrayList<Computer>();
+
+        for (Computer computer : computers) {
+            if (!(computer instanceof Jenkins.MasterComputer) && computer.isOnline()) {
+                activeComputers.add(computer);
+            }
+        }
+
+        return activeComputers;
+    }
+
+
 }

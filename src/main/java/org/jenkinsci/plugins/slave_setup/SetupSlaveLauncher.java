@@ -2,7 +2,6 @@ package org.jenkinsci.plugins.slave_setup;
 
 
 import com.google.common.base.Strings;
-import org.apache.commons.lang.SystemUtils;
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
@@ -12,8 +11,6 @@ import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.DelegatingComputerLauncher;
 import hudson.slaves.SlaveComputer;
-import hudson.tasks.Shell;
-import hudson.tasks.BatchFile;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 
@@ -53,20 +50,8 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
             return;
         }
 
-        Launcher launcher = jenkins.getRootPath().createLauncher(listener);
-
         FilePath root = jenkins.getRootPath();
-
-
-
-        int r;
-        // 29.05.18
-        // Don`t wanted verbose print - Jenkins checks the OS itself later.(1.11.3 rev)
-        //listener.getLogger().println("Checking operating system of slave, isUnix: " + String.valueOf(launcher.isUnix()));
-
-        // 25.05.18
-        // New Os Check & Switch to execute targeted scripts.
-        r = Utils.multiOsExecutor(listener,script,root,null);
+        int r = Utils.multiOsExecutor(listener,script,root,null);
 
         if (r != 0) {
             throw new AbortException("Script failed with return code " + Integer.toString(r) + ".");
