@@ -35,7 +35,7 @@ public class ComputerListenerImpl extends ComputerListener {
         // Componentes printer will print only debug messages.
         Components.setLogger(listener); // If you remove this line will stop printing info
 
-        // Uncomment this line to get verbose infoº
+        // Uncomment this line to get verbose info
         // Components.enableDebug();
         Components.debug("Start preOnline Procedures, ");
 
