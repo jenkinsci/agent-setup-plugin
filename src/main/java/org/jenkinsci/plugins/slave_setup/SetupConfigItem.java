@@ -2,19 +2,15 @@ package org.jenkinsci.plugins.slave_setup;
 
 import antlr.ANTLRException;
 import hudson.Extension;
-// import hudson.FilePath;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
-// import hudson.model.Describable;
 import hudson.model.Descriptor;
-// import hudson.model.TaskListener;
 import hudson.model.labels.LabelAtom;
 import hudson.model.labels.LabelExpression;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
-// import java.util.ArrayList;
 
 /**
  * Represents a setup config for one set of labels. It may have its own prepare script, files to copy and command line.
@@ -55,8 +51,6 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
 
 
     /**
-
-    /**
      * Constructor uesd to create the setup config instance
      *
      */
@@ -89,7 +83,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     /**
      * Sets the prepare script code
      *
-     * @param prepareScript
+     * @param prepareScript User values
      */
     public void setPrepareScript(String prepareScript) {
         this.prepareScript = prepareScript;
@@ -98,7 +92,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     /**
      * Returns the directory containing the setup relevant files and sub directories
      *
-     * @return
+     * @return User values
      */
     public File getFilesDir() {
         return filesDir;
@@ -171,6 +165,8 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
 
     /**
      * Gets the textual representation of the assigned label as it was entered by the user.
+     * 
+     * @return User values
      */
     public String getAssignedLabelString() {
         if (StringUtils.isEmpty(this.assignedLabelString)) {
@@ -206,6 +202,8 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
 
     /**
      * Every ConfigItem have a unique identifier for content which will match with slave hashCode
+     * 
+     * @return unic value per all scripts
      */
     public int hashCode(){
         return (prepareScript + filesDir + commandLine).hashCode();
@@ -213,6 +211,8 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
 
     /**
      * Useful function to get same name as needs to be under slave cache.
+     * 
+     * @return String containing tag + DELIMITER +  hashCode()
      */
     public String remoteCache(){
         return this.assignedLabelString + SetupConfigItem.DELIMITER + this.hashCode();

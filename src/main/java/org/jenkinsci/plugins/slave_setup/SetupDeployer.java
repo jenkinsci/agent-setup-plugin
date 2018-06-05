@@ -40,8 +40,10 @@ public class SetupDeployer {
     /**
      * Copy localPath into remotePath and return boolean if operation succeded
      * 
-     * @throws InterruptedException
-     * @throws IOException
+     * @return Boolean , true if everything went OK
+     * 
+     * @throws InterruptedException BrokenPipe
+     * @throws IOException IO error while accesing disk
      */
     public static boolean copyFiles(File localPath, FilePath remotePath) throws IOException, InterruptedException {
         if (localPath != null && StringUtils.isNotBlank(localPath.getPath())) {
@@ -63,10 +65,15 @@ public class SetupDeployer {
     }
 
     /**
-     * TODO: Add me descripton, are linked to utils, and do SlaveScript execution
+     * Executes the given script on the given slave independently of their OSs.
      * 
-     * @throws InterruptedException
-     * @throws IOException
+     * @param listener   TaskListener of the job
+     * @param script     String script to execute
+     * @param root       Slave rootPath as jenkins.FilePath
+     * @param enviroment Enviroment variables for this job on this node. From SetupDeployer.createEnvVars(L)
+     * 
+     * @throws InterruptedException BrokenPipe
+     * @throws IOException IO error while accesing disk
      */
     public static int executeScriptOnSlave(TaskListener listener, String script, FilePath root, EnvVars enviroment)
             throws IOException, InterruptedException {
@@ -76,7 +83,6 @@ public class SetupDeployer {
     /**
      * Executes the given script on Jenkins MasterNode with his envVars logging with given listener 
      * @param script     Script to execute on Master
-     * @param c          Computer
      * @param listener   Job's listener handle
      * @param enviroment Enviroment's EnvVars from
      *                   SetupDeployer.createEnvVarsForComputer(c)

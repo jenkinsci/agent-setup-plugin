@@ -6,7 +6,7 @@ import hudson.model.Computer;
 import hudson.model.TaskListener;
 import hudson.remoting.Channel;
 import hudson.slaves.ComputerListener;
-import jenkins.model.Jenkins;
+// import jenkins.model.Jenkins;
 
 import java.io.IOException;
 
@@ -25,8 +25,9 @@ public class ComputerListenerImpl extends ComputerListener {
      * @param channel  not used
      * @param root     the root of the slave
      * @param listener log listener
-     * @throws IOException
-     * @throws InterruptedException
+     * 
+     * @throws IOException IO error accessing file on disk (cache)
+     * @throws InterruptedException Pipe Broken
      */
     @Override
     public void preOnline(Computer c, Channel channel, FilePath root, TaskListener listener)

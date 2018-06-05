@@ -42,8 +42,11 @@ public class Components {
      * Add construction description, Checks if config exists and creates it, then
      * store all remote objects to be used at deploy time
      * 
-     * @throws InterruptedException
-     * @throws IOException
+     * @param remoteRootPath FilePath of remote/slave rootPath
+     * @param slave Computer slave.
+     * 
+     * @throws InterruptedException Pipe Broken
+     * @throws IOException IO error while accessing configFile
      * 
      */
     public Components(FilePath remoteRootPath, Computer slave) throws IOException, InterruptedException {
@@ -66,6 +69,7 @@ public class Components {
      * Check if slave contains some setup configured as false,it means that is first
      * time connection or any designed setup. If we want verbose just set listener
      * and verbose will work
+     * @return Boolean checking if the cache is empty or not to tag it as newDeploy
      */
     public boolean newDeploy() {
         return this.getCache().size() == 0;
@@ -73,6 +77,7 @@ public class Components {
 
     /**
      * Required method to define logging procedures
+     * @param listener TaskListener of the job
      */
     public static void setLogger(TaskListener listener) {
         Components.listener = listener;
@@ -80,6 +85,7 @@ public class Components {
 
     /**
      * Returns current cache, if null will create new one
+     * @return List<String> of components
      */
     private List<String> getCache() {
         if (cache == null)
@@ -90,6 +96,7 @@ public class Components {
     /**
      * Appends element to cache, and prevents to create duplicated items with
      * diferent or same versions.
+     * @param component String of component/installation to add.
      */
     private void addCache(String component) {
 
@@ -116,8 +123,13 @@ public class Components {
     /**
      * Slave setup flow, here, the method iterates all SetupItems and if not
      * installed jet, will call doDeploy
+     * 
+     * @throws InterruptedException If connection is broken
+     * @throws IOException IOErrors accessing cache
+     * @throws AbortException User close/Cancelled
+     * 
      */
-    public boolean doSetup() throws AbortException, IOException, InterruptedException {
+    public void doSetup() throws AbortException, IOException, InterruptedException {
         if (!this.newDeploy()) {
             // If slave contains some setups, will read cache data from slave disk
             Components.info("Updating existing installations for " + slave.getName());
@@ -129,12 +141,15 @@ public class Components {
             this.singleSetup(item);
         }
         closeConfigStream();
-        return false;
     }
 
     /**
-     * @throws InterruptedException
-     * @throws IOException
+     * Performs the execution of the config item on the matching label nodes.
+     * 
+     * @param item SetupConfigItem to perform.
+     * 
+     * @throws InterruptedException If connection is broken
+     * @throws IOException IOErrors accessing hashCode
      * 
      */
     public void singleSetup(SetupConfigItem item) throws IOException, InterruptedException {
@@ -155,9 +170,13 @@ public class Components {
     }
 
     /**
+     * Iterates over all instance's SetupConfigItem performing/calling a singleSetup for each SetupConfigItem
      * 
+     * @throws InterruptedException If connection is broken
+     * @throws IOException IOErrors accessing cache
+     * @throws AbortException User close/Cancelled
      */
-    public boolean doConfig() throws AbortException, IOException, InterruptedException {
+    public void doConfig() throws AbortException, IOException, InterruptedException {
         if (!this.newDeploy()) {
             // If slave contains some setups, will read cache data from slave disk
             Components.info("Updating existing installations for " + slave.getName());
@@ -171,11 +190,13 @@ public class Components {
             this.singleSetup(item);
         }
         closeConfigStream();
-        return false;
     }
 
     /**
-     * 
+     * Iterates over all given computers performing the doConfig for each computer
+     *
+     * @param activeSlaves List of the conected slaveComputers
+     * @return Boolean telling if all the node execution went ok with true and error with false. 
      */
     public static boolean doConfigSetups(List<Computer> activeSlaves) {
         boolean succeded = true;
@@ -194,13 +215,14 @@ public class Components {
                 succeded = false;
             }
         }
-
         return succeded;
-
     }
 
     /**
-     * 
+     * Iterates over all the given computers list seting up or updating the installation
+     * if required.
+     * @param activeSlaves List conatining all the instance's slaveComputers 
+     * @return Boolean telling if all the executions went ok with true.
      */
     public static boolean doSetups(List<Computer> activeSlaves) {
         boolean succeded = true;
@@ -223,10 +245,12 @@ public class Components {
     }
 
     /**
-     * files to slave and run slave scripts
+     * Copy files from master to slave and run slave scripts for the given SetupConfigItem
      * 
-     * @throws InterruptedException
-     * @throws IOException
+     * @param installInfo SetupConfigItem to be deployed.
+     * 
+     * @throws InterruptedException For broken connection.
+     * @throws IOException Some IOError
      */
     private void doDeploy(SetupConfigItem installInfo) throws IOException, InterruptedException {
         EnvVars enviroment = SetupDeployer.createEnvVarsForComputer(this.slave);
@@ -251,17 +275,17 @@ public class Components {
     }
 
     /**
-     * TODO: Update-me Only works on Unix Operating Systems, this will use some unix
+     * Only works on Unix Operating Systems, this will use some unix
      * commands to clear temporally data
      * 
      * If file has more than 5 minutes in the last modified tag, it will be removed.
-     * Only will remove files containing jenkins in name
+     * Only will remove files which name is jenkins
      * 
      * This function require at least (find) binary to be installed
      * 
-     * @throws InterruptedException
-     * @throws IOException
-     * @throws AbortException
+     * @throws InterruptedException Broken pipe.
+     * @throws IOException IO error accessing remotePath
+     * @throws AbortException User close/Cancelled
      * 
      */
     public void clearTemporally() throws AbortException, IOException, InterruptedException {
@@ -286,7 +310,9 @@ public class Components {
     /**
      * Validate execution scripts code, in order to throw exception if not
      * 
-     * @throws AbortException
+     * @param r int result of launching method cointaining the script ExitCode. 0 = OK
+     * 
+     * @throws AbortException User close/Cancelled
      */
     private void validateResponse(int r) throws AbortException {
         if (r != 0) {
@@ -298,14 +324,14 @@ public class Components {
     /**
      * Unlink remote file, after writing pending cache
      * 
-     * @throws InterruptedException
-     * @throws IOException
+     * @throws InterruptedException Broken pipe.
+     * @throws IOException IO error accessing slave's configFile
      */
     private void closeConfigStream() throws IOException, InterruptedException {
         if (getCache().size() > 0) {
             Components.debug(
                     String.format("Updating %s with\n%s", this.configFile, StringUtils.join(getCache(), "\r\n")));
-            configFile.write(StringUtils.join(cache, this.remoteSeparator), "UTF-8");
+            configFile.write(StringUtils.join(cache, this.remoteSeparator).trim(), "UTF-8");
         } else
             Components.debug("Nothing to update on slave, stream closed");
 
@@ -314,8 +340,10 @@ public class Components {
     /**
      * From slave read cache file, and lock it.
      * 
-     * @throws InterruptedException
-     * @throws IOException
+     * @return List<String> Of already installed components from slaveConfigFile
+     * 
+     * @throws InterruptedException Broken pipe.
+     * @throws IOException IO error accessing remotePath
      */
     private List<String> createConfigStream() throws IOException, InterruptedException {
         return new ArrayList<String>(Arrays.asList(this.configFile.readToString().split(this.remoteSeparator)));
@@ -324,6 +352,7 @@ public class Components {
 
     /**
      * Print only if debug enabled (debug purposes)
+     * @param message String to print as DEBUG
      */
     public static void debug(String message) {
         if (Components.debugMode)
@@ -332,6 +361,7 @@ public class Components {
 
     /**
      * Global printer to return logger to master
+     * @param message String to print as INFO
      */
     public static void info(String message) {
         if (Components.listener != null)

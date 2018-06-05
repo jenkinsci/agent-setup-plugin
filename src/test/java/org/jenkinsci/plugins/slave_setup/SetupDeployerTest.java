@@ -104,14 +104,11 @@ public class SetupDeployerTest extends HudsonTestCase {
             SetupDeployer.executeScriptOnMaster(taskListener, "", null);
             // setupDeployer.executePrepareScripts(slave, config, taskListener, new ArrayList<String>());
             File testFile = new File("/tmp/setup.txt");
-            if(testFile.createNewFile())
-            {
-                //FileCreated
-            }
+            testFile.createNewFile();
 
-            SetupDeployer.copyFiles(testFile, root); //TODO: Update me with down code
+            SetupDeployer.copyFiles(testFile, root); 
             // SetupDeployer.deployToComputer(slave, root, taskListener, config);
-            SetupDeployer.executeScriptOnSlave(taskListener, "", root, null); // TODO: Update me with upper code
+            SetupDeployer.executeScriptOnSlave(taskListener, "", root, null);
 
             
             FilePath[] files = slave.getNode().getRootPath().list("setup.txt");  // root.list ? 

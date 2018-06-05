@@ -5,7 +5,6 @@ import hudson.Extension;
 import hudson.Util;
 import hudson.model.*;
 import hudson.model.labels.LabelAtom;
-import hudson.slaves.SlaveComputer;
 import hudson.util.FormValidation;
 import hudson.util.LogTaskListener;
 import jenkins.model.GlobalConfiguration;
@@ -45,6 +44,16 @@ public class SetupConfig extends GlobalConfiguration {
         this.setupConfigItems = setupConfigItems;
     }
 
+    /**
+     * GlobalConfiguration override.
+     * Begin this SetupConfig initialization binding configJson, seting up Listener and performing
+     * this config execution on all activeSlaves.
+     * 
+     * @param req StaplerRequest from jenkins classes
+     * @param json JSONObject from jenkins classes
+     * 
+     * @return Boolean if the config setup for all the slaves went correctly if true.
+     */
     @Override
     public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
         req.bindJSON(this, json);
@@ -56,15 +65,22 @@ public class SetupConfig extends GlobalConfiguration {
 
     }
 
+    /**
+     * Get this SetupConfig class 
+     * @return class SetupConfig
+     */
     public static SetupConfig get() {
         return GlobalConfiguration.all().get(SetupConfig.class);
     }
 
-    /*
-     * form validations...
-     *
+    /**
+     * Autocompletion string for jelly to autocomplete node label.
+     * 
+     * @param value String to be compared and autocompleted.
+     * 
+     * @return AutoCompletionCandidates for the given value checking all Jenkins instance labels.
+     * 
      */
-
     public AutoCompletionCandidates doAutoCompleteAssignedLabelString(@QueryParameter String value) {
         AutoCompletionCandidates c = new AutoCompletionCandidates();
         Set<Label> labels = Jenkins.getInstance().getLabels();

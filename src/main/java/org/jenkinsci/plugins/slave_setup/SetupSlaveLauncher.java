@@ -36,6 +36,8 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
 
     /**
      * Executes a script on the master node, with a bit of tracing.
+     * @param script String script to execute.
+     * @param listener TaskListener of the job.
      */
     private void execute(String script, TaskListener listener) throws IOException, InterruptedException {
         Jenkins jenkins = Jenkins.getInstance();
@@ -60,21 +62,29 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
 
     }
 
-    /*
+    /**
      * Getters for Jelly
+     * @return Object startScript
+     * 
      */
     public String getStartScript() {
         return startScript;
     }
 
+    /**
+     * @return Object stopScript
+     */
     public String getStopScript() {
         return stopScript;
     }
 
-    /*
+    /**
      *  Delegated methods that plug the additional logic for on-demand slaves
+     * 
+     * @param computer SlaveComputer target to perform the launch.
+     * @param listener Job's TaskListener 
+     * 
      */
-
     @Override
     public void launch(SlaveComputer computer, TaskListener listener) throws IOException, InterruptedException {
         execute(startScript, listener);
