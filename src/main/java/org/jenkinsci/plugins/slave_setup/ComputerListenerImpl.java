@@ -6,6 +6,7 @@ import hudson.model.Computer;
 import hudson.model.TaskListener;
 import hudson.remoting.Channel;
 import hudson.slaves.ComputerListener;
+import jenkins.model.Jenkins;
 
 import java.io.IOException;
 
@@ -36,9 +37,10 @@ public class ComputerListenerImpl extends ComputerListener {
 
         // Uncomment this line to get verbose infoº
         // Components.enableDebug();
-
         Components.debug("Start preOnline Procedures, ");
+
         Components manager = new Components(root, c);
+
         manager.doSetup();
         Components.debug("Setup Ended");
 
