@@ -58,6 +58,7 @@ public class Components {
         this.remoteSeparator = Utils.osLineSeparator(this.remotePath.getRemote());
         this.slave = slave;
         this.configs = SetupConfig.get().getSetupConfigItems();
+        this.cache = createConfigStream();
 
     }
 
@@ -67,7 +68,7 @@ public class Components {
      * and verbose will work
      */
     public boolean newDeploy() {
-        return this.getCache().size() > 0;
+        return this.getCache().size() == 0;
     }
 
     /**
@@ -119,27 +120,83 @@ public class Components {
     public boolean doSetup() throws AbortException, IOException, InterruptedException {
         if (!this.newDeploy()) {
             // If slave contains some setups, will read cache data from slave disk
-
             Components.info("Updating existing installations for " + slave.getName());
-            cache = createConfigStream();
-            Components.debug("Given cache contains this lines:\r\n " + String.join(remoteSeparator, cache));
         } else
             Components.info("Executing first install for " + slave.getName());
 
+        Components.debug("Given cache contains this lines:\r\n " + String.join(remoteSeparator, cache));
         for (SetupConfigItem item : configs) {
-            if (Utils.labelMatches(item.getAssignedLabelString(), slave)) {
-
-                if (!getCache().contains(item.remoteCache())) {
-                    Components.info("Installing " + item.getAssignedLabelString());
-                    this.doDeploy(item);
-                    Components.info("Install " + item.getAssignedLabelString() + " succeded");
-                } else
-                    Components.info(String.format("%s slave have last version of %s", slave.getName(),
-                            item.getAssignedLabelString()));
-            }
+            this.singleSetup(item);
         }
         closeConfigStream();
         return false;
+    }
+
+    /**
+     * @throws InterruptedException
+     * @throws IOException
+     * 
+     */
+    public void singleSetup(SetupConfigItem item) throws IOException, InterruptedException {
+        if (Utils.labelMatches(item.getAssignedLabelString(), slave)) {
+
+            Components.debug("Start executing scripts for " + item.getAssignedLabelString() + " with version "
+                    + item.hashCode());
+
+            if (!getCache().contains(item.remoteCache())) {
+                Components.info("Installing " + item.getAssignedLabelString());
+                this.doDeploy(item);
+                Components.info("Install " + item.getAssignedLabelString() + " succeded");
+            } else
+                Components.info(String.format("%s slave have last version of %s", slave.getName(),
+                        item.getAssignedLabelString()));
+        }
+
+    }
+
+    /**
+     * 
+     */
+    public boolean doConfig() throws AbortException, IOException, InterruptedException {
+        if (!this.newDeploy()) {
+            // If slave contains some setups, will read cache data from slave disk
+            Components.info("Updating existing installations for " + slave.getName());
+        } else
+            Components.info("Executing first install for " + slave.getName());
+
+        Components.debug("Given cache contains this lines:\r\n " + String.join(remoteSeparator, cache));
+        for (SetupConfigItem item : configs) {
+            if (!item.getDeployNow())
+                continue;
+            this.singleSetup(item);
+        }
+        closeConfigStream();
+        return false;
+    }
+
+    /**
+     * 
+     */
+    public static boolean doConfigSetups(List<Computer> activeSlaves) {
+        boolean succeded = true;
+        for (Computer slave : activeSlaves) {
+            if (slave.isOffline()) {
+                Components.info(slave.getName() + " is offline");
+                continue;
+            }
+            try {
+
+                Components manager = new Components(slave.getNode().getRootPath(), slave);
+                manager.doConfig();
+                manager.clearTemporally();
+            } catch (Exception ex) {
+                Components.info(String.format("Failed to configure %s\nErr:%s", slave.getName(), ex.getMessage()));
+                succeded = false;
+            }
+        }
+
+        return succeded;
+
     }
 
     /**
@@ -165,7 +222,8 @@ public class Components {
         return succeded;
     }
 
-    /** files to slave and run slave scripts
+    /**
+     * files to slave and run slave scripts
      * 
      * @throws InterruptedException
      * @throws IOException
@@ -175,11 +233,10 @@ public class Components {
 
         if (!StringUtils.isEmpty(installInfo.getPrepareScript())) {
             // If isn't empty script will execute on master
-            validateResponse(
-                    SetupDeployer.executeScriptOnMaster(Components.listener, installInfo.getPrepareScript(), enviroment));
+            validateResponse(SetupDeployer.executeScriptOnMaster(Components.listener, installInfo.getPrepareScript(),
+                    enviroment));
             installInfo.setPrepareScriptExecuted(true);
         }
-                    
 
         // Copy files from master to slave (only if option contains some path)
         SetupDeployer.copyFiles(installInfo.getFilesDir(), remotePath);
@@ -245,8 +302,13 @@ public class Components {
      * @throws IOException
      */
     private void closeConfigStream() throws IOException, InterruptedException {
-        Components.debug(String.format("Updating %s with\n%s", this.configFile, StringUtils.join(getCache(), "\r\n")));
-        configFile.write(StringUtils.join(cache, this.remoteSeparator), "UTF-8");
+        if (getCache().size() > 0) {
+            Components.debug(
+                    String.format("Updating %s with\n%s", this.configFile, StringUtils.join(getCache(), "\r\n")));
+            configFile.write(StringUtils.join(cache, this.remoteSeparator), "UTF-8");
+        } else
+            Components.debug("Nothing to update on slave, stream closed");
+
     }
 
     /**

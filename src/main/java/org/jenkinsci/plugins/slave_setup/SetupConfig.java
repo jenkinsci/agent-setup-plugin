@@ -52,7 +52,8 @@ public class SetupConfig extends GlobalConfiguration {
 
         Components.setLogger(new LogTaskListener(LOGGER, Level.ALL));
 
-        return Components.doSetups(Utils.getAllActiveSlaves());
+        return Components.doConfigSetups(Utils.getAllActiveSlaves());
+
     }
 
     public static SetupConfig get() {
