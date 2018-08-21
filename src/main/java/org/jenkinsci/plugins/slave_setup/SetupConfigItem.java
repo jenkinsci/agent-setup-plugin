@@ -83,7 +83,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     /**
      * Sets the prepare script code
      *
-     * @param prepareScript User values
+     * @param prepareScript the script code as string
      */
     public void setPrepareScript(String prepareScript) {
         this.prepareScript = prepareScript;
@@ -92,7 +92,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     /**
      * Returns the directory containing the setup relevant files and sub directories
      *
-     * @return User values
+     * @return the directory as File 
      */
     public File getFilesDir() {
         return filesDir;
@@ -166,7 +166,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     /**
      * Gets the textual representation of the assigned label as it was entered by the user.
      * 
-     * @return User values
+     * @return assigned label as string
      */
     public String getAssignedLabelString() {
         if (StringUtils.isEmpty(this.assignedLabelString)) {

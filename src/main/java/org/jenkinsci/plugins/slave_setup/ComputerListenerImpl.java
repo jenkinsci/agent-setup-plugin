@@ -6,8 +6,6 @@ import hudson.model.Computer;
 import hudson.model.TaskListener;
 import hudson.remoting.Channel;
 import hudson.slaves.ComputerListener;
-// import jenkins.model.Jenkins;
-
 import java.io.IOException;
 
 /**

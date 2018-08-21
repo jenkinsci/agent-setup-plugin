@@ -134,49 +134,6 @@ public class SetupDeployerTest extends HudsonTestCase {
         Components.doSetups( Utils.getAllActiveSlaves());
     }
 
-    // @Test
-    // public void testDeployToComputers2() {
-
-    //     // TODO: I think this test isn't necesary, we don't copy in multiple slaves
-
-    //     SetupDeployer setupDeployer = new SetupDeployer();
-    //     List<Computer> activeSlaves = Utils.getAllActiveSlaves();
-    //     Label fooLabel = Label.get("foo");
-
-    //     SetupConfig fooConfig = createConfig("foo");
-    //     fooConfig.getSetupConfigItems().add(new SetupConfigItem());
-    //     SetupConfigItem emptyPathSetupConfigItem = new SetupConfigItem();
-    //     emptyPathSetupConfigItem.setFilesDir(new File(""));
-    //     fooConfig.getSetupConfigItems().add(emptyPathSetupConfigItem);
-
-    //     SetupConfigItem emptyPathSetupConfigItemWithLabel = new SetupConfigItem();
-    //     emptyPathSetupConfigItemWithLabel.setFilesDir(new File(""));
-    //     emptyPathSetupConfigItemWithLabel.setAssignedLabelString("foo");
-    //     fooConfig.getSetupConfigItems().add(emptyPathSetupConfigItemWithLabel);
-
-    //     setupDeployer.executePrepareScripts(null, fooConfig, this.createTaskListener(), new ArrayList<String>());
-    //     setupDeployer.deployToComputers(activeSlaves, fooConfig);
-
-    //     for (Computer activeSlave : activeSlaves) {
-    //         try {
-    //             FilePath[] files = activeSlave.getNode().getRootPath().list("setup.txt");
-
-    //             if (activeSlave.getNode().getAssignedLabels().contains(fooLabel)) {
-    //                 assertEquals(1, files.length);
-    //             } else {
-    //                 assertEquals(0, files.length);
-    //             }
-
-    //         } catch (IOException e) {
-    //             e.printStackTrace();
-    //             fail(e.getMessage());
-    //         } catch (InterruptedException e) {
-    //             e.printStackTrace();
-    //             fail(e.getMessage());
-    //         }
-    //     }
-    // }
-
     @Test
     public void testExecutePrepareScripts() throws Exception {
         SetupConfig setupConfig = new SetupConfig();
