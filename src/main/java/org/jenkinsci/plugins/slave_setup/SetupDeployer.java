@@ -61,7 +61,7 @@ public class SetupDeployer {
      * 
      */
     public static boolean checkLabelsForComputerOrNull(Computer c, SetupConfigItem item) {
-        return c == null || Utils.labelMatches(item.getAssignedLabelString(), c);
+        return c == null || item.getAssignedLabelString() == "" || Utils.labelMatches(item.getAssignedLabelString(), c);
     }
 
     /**
