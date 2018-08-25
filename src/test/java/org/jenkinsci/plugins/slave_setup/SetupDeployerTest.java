@@ -144,21 +144,21 @@ public class SetupDeployerTest extends HudsonTestCase {
 
         File sci1Files = prepSCIFile("sci1");
         SetupConfigItem sci1 = new SetupConfigItem();
-        sci1.setPrepareScript("echo prep01=v01 > " + sci1Files.getCanonicalPath() + "/sci1.properties");
+        sci1.setPrepareScript("echo prep01=v01> " + sci1Files.getCanonicalPath() + "/sci1.properties");
         sci1.setAssignedLabelString("foo");
         sci1.setFilesDir(sci1Files);
         setupConfig.getSetupConfigItems().add(sci1);
 
         File sci2Files = prepSCIFile("sci2");
         SetupConfigItem sci2 = new SetupConfigItem();
-        sci2.setPrepareScript("echo prep02=v02 > " + sci2Files.getCanonicalPath() + "/sci2.properties");
+        sci2.setPrepareScript("echo prep02=v02> " + sci2Files.getCanonicalPath() + "/sci2.properties");
         sci2.setAssignedLabelString("bar");
         sci2.setFilesDir(sci2Files);
         setupConfig.getSetupConfigItems().add(sci2);
 
         File sci3Files = prepSCIFile("sci3");
         SetupConfigItem sci3 = new SetupConfigItem();
-        sci3.setPrepareScript("echo prep03=v03 > " + sci3Files.getCanonicalPath() + "/sci3.properties");
+        sci3.setPrepareScript("echo prep03=v03> " + sci3Files.getCanonicalPath() + "/sci3.properties");
         sci3.setAssignedLabelString("foo || bar");
         sci3.setFilesDir(sci3Files);
         setupConfig.getSetupConfigItems().add(sci3);
