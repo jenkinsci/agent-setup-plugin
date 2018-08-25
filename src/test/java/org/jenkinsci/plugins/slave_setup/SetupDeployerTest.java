@@ -102,16 +102,18 @@ public class SetupDeployerTest extends HudsonTestCase {
         try {
             SetupConfig config = createConfig(null);
             SetupDeployer.executeScriptOnMaster(taskListener, "", null);
-            // setupDeployer.executePrepareScripts(slave, config, taskListener, new ArrayList<String>());
-            File testFile = new File("/tmp/setup.txt");
+            // setupDeployer.executePrepareScripts(slave, config, taskListener, new
+            // ArrayList<String>());
+            // File testFile = new File("tmp/setup.txt");
+
+            File testFile = new File("src/test/resources/files");
             testFile.createNewFile();
 
-            SetupDeployer.copyFiles(testFile, root); 
+            SetupDeployer.copyFiles(testFile, root);
             // SetupDeployer.deployToComputer(slave, root, taskListener, config);
             SetupDeployer.executeScriptOnSlave(taskListener, "", root, null);
 
-            
-            FilePath[] files = slave.getNode().getRootPath().list("setup.txt");  // root.list ? 
+            FilePath[] files = slave.getNode().getRootPath().list("setup.txt"); // root.list ?
             assertEquals(1, files.length);
 
         } catch (IOException e) {
@@ -129,9 +131,11 @@ public class SetupDeployerTest extends HudsonTestCase {
      */
     @Test
     public void testDeployToComputers() throws IOException {
-        File testFile = new File("/tmp/setup.txt");
+        // File testFile = new File("/tmp/setup.txt");
+        
+        File testFile = new File("src/test/resources/files/setup.txt");
         testFile.createNewFile();
-        Components.doSetups( Utils.getAllActiveSlaves());
+        Components.doSetups(Utils.getAllActiveSlaves());
     }
 
     @Test
@@ -140,33 +144,34 @@ public class SetupDeployerTest extends HudsonTestCase {
 
         File sci1Files = prepSCIFile("sci1");
         SetupConfigItem sci1 = new SetupConfigItem();
-        sci1.setPrepareScript("echo \"prep01=v01\" > " + sci1Files.getCanonicalPath() + "/sci1.properties");
+        sci1.setPrepareScript("echo prep01=v01 > " + sci1Files.getCanonicalPath() + "/sci1.properties");
         sci1.setAssignedLabelString("foo");
         sci1.setFilesDir(sci1Files);
         setupConfig.getSetupConfigItems().add(sci1);
 
         File sci2Files = prepSCIFile("sci2");
         SetupConfigItem sci2 = new SetupConfigItem();
-        sci2.setPrepareScript("echo \"prep02=v02\" > " + sci2Files.getCanonicalPath() + "/sci2.properties");
+        sci2.setPrepareScript("echo prep02=v02 > " + sci2Files.getCanonicalPath() + "/sci2.properties");
         sci2.setAssignedLabelString("bar");
         sci2.setFilesDir(sci2Files);
         setupConfig.getSetupConfigItems().add(sci2);
 
         File sci3Files = prepSCIFile("sci3");
         SetupConfigItem sci3 = new SetupConfigItem();
-        sci3.setPrepareScript("echo \"prep03=v03\" > " + sci3Files.getCanonicalPath() + "/sci3.properties");
+        sci3.setPrepareScript("echo prep03=v03 > " + sci3Files.getCanonicalPath() + "/sci3.properties");
         sci3.setAssignedLabelString("foo || bar");
         sci3.setFilesDir(sci3Files);
         setupConfig.getSetupConfigItems().add(sci3);
 
         TaskListener taskListener = this.createTaskListener();
 
-        for(SetupConfigItem item: setupConfig.getSetupConfigItems()){
-            SetupDeployer.executeScriptOnMaster(taskListener, item.getPrepareScript(),null);
+        for (SetupConfigItem item : setupConfig.getSetupConfigItems()) {
+            SetupDeployer.executeScriptOnMaster(taskListener, item.getPrepareScript(), null);
         }
 
         // SetupDeployer setupDeployer = new SetupDeployer();
-        // setupDeployer.executePrepareScripts(null, setupConfig, taskListener, new ArrayList<String>());
+        // setupDeployer.executePrepareScripts(null, setupConfig, taskListener, new
+        // ArrayList<String>());
 
         assertFirstLineEquals(sci1Files.listFiles(), "prep01=v01");
 
@@ -175,26 +180,6 @@ public class SetupDeployerTest extends HudsonTestCase {
         assertFirstLineEquals(sci3Files.listFiles(), "prep03=v03");
     }
 
-    /*
-     * Erasing Prelaunch methods
-     * 
-     * @Test public void testExecutePreLaunchScripts() throws Exception {
-     * SetupConfig setupConfig = new SetupConfig();
-     * 
-     * File sciFiles = prepSCIFile("sci"); SetupConfigItem sci1 = new
-     * SetupConfigItem(); sci1.setPreLaunchScript("echo \"prep01=v01\" > " +
-     * sciFiles.getCanonicalPath() + "/sci.properties");
-     * sci1.setAssignedLabelString("foo");
-     * setupConfig.getSetupConfigItems().add(sci1);
-     * 
-     * TaskListener taskListener = this.createTaskListener();
-     * 
-     * SetupDeployer setupDeployer = new SetupDeployer();
-     * setupDeployer.executePreLaunchScripts(slaves.get(0).getComputer(),
-     * setupConfig, taskListener);
-     * 
-     * assertFirstLineEquals(sciFiles.listFiles(), "prep01=v01"); }
-     */
 
     private void assertFirstLineEquals(File[] expectedSciFiles, String expected) {
         assertEquals(1, expectedSciFiles.length);
@@ -229,14 +214,18 @@ public class SetupDeployerTest extends HudsonTestCase {
         oneLabelItemWithWhitespace.setAssignedLabelString("foo ");
 
         // config items with foo label should be executed on slave 0 and 1 but not on 2.
-        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(0).getComputer(), oneLabelItemWithWhitespace));
-        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(1).getComputer(), oneLabelItemWithWhitespace));
-        assertFalse(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(2).getComputer(), oneLabelItemWithWhitespace));
+        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(0).getComputer(),
+                oneLabelItemWithWhitespace));
+        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(1).getComputer(),
+                oneLabelItemWithWhitespace));
+        assertFalse(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(2).getComputer(),
+                oneLabelItemWithWhitespace));
     }
 
     private File prepSCIFile(String name) {
-        Computer computer = Jenkins.MasterComputer.currentComputer();
-        FilePath rootPath = computer.getNode().getRootPath();
+        // Computer computer = Jenkins.MasterComputer.currentComputer();
+        // FilePath rootPath = computer.getNode().getRootPath();
+        FilePath rootPath = Jenkins.getInstance().getRootPath();
 
         try {
             FilePath tempDir = rootPath.createTempDir(name, null);
