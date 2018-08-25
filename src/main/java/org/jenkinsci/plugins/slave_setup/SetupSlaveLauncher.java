@@ -1,21 +1,21 @@
 package org.jenkinsci.plugins.slave_setup;
 
 
+import java.io.IOException;
+
 import com.google.common.base.Strings;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.Launcher;
 import hudson.model.Descriptor;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.DelegatingComputerLauncher;
 import hudson.slaves.SlaveComputer;
 import jenkins.model.Jenkins;
-import org.kohsuke.stapler.DataBoundConstructor;
-
-
-import java.io.IOException;
 
 /**
  * Implements the custom logic for an on-demand slave, executing scripts before connecting and after disconnecting
@@ -41,12 +41,6 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
      */
     private void execute(String script, TaskListener listener) throws IOException, InterruptedException {
         Jenkins jenkins = Jenkins.getInstance();
-
-        if (jenkins == null) {
-            listener.getLogger().println("Jenkins is not ready... doing nothing");
-            return;
-        }
-
         if (Strings.isNullOrEmpty(script)) {
             listener.getLogger().println("No script to be executed for this on-demand slave.");
             return;

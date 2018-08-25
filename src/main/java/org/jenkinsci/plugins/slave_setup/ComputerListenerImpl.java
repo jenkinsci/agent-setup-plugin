@@ -1,12 +1,13 @@
 package org.jenkinsci.plugins.slave_setup;
 
+import java.io.IOException;
+
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Computer;
 import hudson.model.TaskListener;
 import hudson.remoting.Channel;
 import hudson.slaves.ComputerListener;
-import java.io.IOException;
 
 /**
  * @author Kohsuke Kawaguchi

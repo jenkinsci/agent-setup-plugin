@@ -12,6 +12,7 @@ import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.model.Computer;
+import hudson.model.Node;
 import hudson.model.TaskListener;
 
 /**
@@ -25,7 +26,7 @@ import hudson.model.TaskListener;
 
 public class Components {
 
-    private final String FILENAME = "slave_setup.ini";
+    private static final String FILENAME = "slave_setup.ini";
 
     private FilePath remotePath;
     private List<SetupConfigItem> configs;
@@ -51,6 +52,11 @@ public class Components {
      */
     public Components(FilePath remoteRootPath, Computer slave) throws IOException, InterruptedException {
         this.remotePath = remoteRootPath;
+        this.slave = slave;
+        this.Initialize();
+    }
+
+    private void Initialize() throws IOException, InterruptedException{
 
         this.configFile = this.remotePath.child(FILENAME);
         if (!this.configFile.exists()) {
@@ -59,10 +65,33 @@ public class Components {
         }
 
         this.remoteSeparator = Utils.osLineSeparator(this.remotePath.getRemote());
-        this.slave = slave;
         this.configs = SetupConfig.get().getSetupConfigItems();
         this.cache = createConfigStream();
+    }
 
+    /**
+     * 
+     * Call Components(slave.getNode().getRootPath(), slave) Add construction
+     * description, Checks if config exists and creates it, then store all remote
+     * objects to be used at deploy time
+     * 
+     * @param slave Computer slave.
+     * 
+     * @throws InterruptedException Pipe Broken
+     * @throws IOException          IO error while accessing configFile
+     * 
+     */
+    public Components(Computer slave) throws IOException, InterruptedException {
+        this.slave = slave;
+        Node node = this.slave.getNode();
+        if (node == null)
+            throw new InterruptedException("slave return null RootPath");
+
+        this.remotePath = node.getRootPath();
+        if (this.remotePath == null)
+            throw new InterruptedException("slave return null RootPath");
+
+        this.Initialize();
     }
 
     /**
@@ -218,12 +247,11 @@ public class Components {
                 continue;
             }
             try {
-
-                Components manager = new Components(slave.getNode().getRootPath(), slave);
+                Components manager = new Components(slave);
                 manager.doConfig();
                 manager.clearTemporally();
             } catch (Exception ex) {
-                Components.info(String.format("Failed to configure %s\nErr:%s", slave.getName(), ex.getMessage()));
+                Components.info(String.format("Failed to configure %s%nErr:%s", slave.getName(), ex.getMessage()));
                 succeded = false;
             }
         }
@@ -245,11 +273,11 @@ public class Components {
                 continue;
             }
             try {
-                Components manager = new Components(slave.getNode().getRootPath(), slave);
+                Components manager = new Components(slave);
                 manager.doSetup();
                 manager.clearTemporally();
             } catch (Exception ex) {
-                Components.info(String.format("Failed to configure %s\nErr:%s", slave.getName(), ex.getMessage()));
+                Components.info(String.format("Failed to configure %s%nErr:%s", slave.getName(), ex.getMessage()));
                 succeded = false;
             }
         }
@@ -345,7 +373,7 @@ public class Components {
     private void closeConfigStream() throws IOException, InterruptedException {
         if (getCache().size() > 0) {
             Components.debug(
-                    String.format("Updating %s with\n%s", this.configFile, StringUtils.join(getCache(), "\r\n")));
+                    String.format("Updating %s with%n%s", this.configFile, StringUtils.join(getCache(), "\r\n")));
             configFile.write(StringUtils.join(cache, this.remoteSeparator).trim(), "UTF-8");
         } else
             Components.debug("Nothing to update on slave, stream closed");

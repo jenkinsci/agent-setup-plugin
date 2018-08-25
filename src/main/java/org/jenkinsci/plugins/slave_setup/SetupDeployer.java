@@ -1,22 +1,17 @@
 package org.jenkinsci.plugins.slave_setup;
 
-import hudson.*;
-import hudson.model.Computer;
-import hudson.model.Label;
-import hudson.model.Node;
-import hudson.model.TaskListener;
-import hudson.slaves.EnvironmentVariablesNodeProperty;
-import hudson.util.LogTaskListener;
-import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.apache.commons.lang.StringUtils;
+
+import hudson.EnvVars;
+import hudson.FilePath;
+import hudson.Util;
+import hudson.model.Computer;
+import hudson.model.Node;
+import hudson.model.TaskListener;
+import jenkins.model.Jenkins;
 
 /**
  * Executes a deployment to all or a single node of the given fileset and
@@ -33,8 +28,8 @@ public class SetupDeployer {
     /**
      * Linked with Utils StringFy Useful to print object data into string
      */
-    public static String StringFy(Object obj) {
-        return Utils.StringFy(obj);
+    public static String stringFy(Object obj) {
+        return Utils.stringFy(obj);
     }
 
     /**
@@ -61,7 +56,7 @@ public class SetupDeployer {
      * 
      */
     public static boolean checkLabelsForComputerOrNull(Computer c, SetupConfigItem item) {
-        return c == null || item.getAssignedLabelString() == "" || Utils.labelMatches(item.getAssignedLabelString(), c);
+        return c == null || item.getAssignedLabelString().equals("") || Utils.labelMatches(item.getAssignedLabelString(), c);
     }
 
     /**

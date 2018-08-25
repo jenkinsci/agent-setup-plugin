@@ -1,19 +1,23 @@
 package org.jenkinsci.plugins.slave_setup;
 
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Computer;
 import hudson.model.Label;
+import hudson.model.Node;
 import hudson.model.TaskListener;
 import hudson.model.labels.LabelAtom;
 import hudson.tasks.BatchFile;
 import hudson.tasks.Shell;
 import jenkins.model.Jenkins;
-
-import java.io.*;
-import java.lang.reflect.Field;
-import java.util.*;
 
 /**
  * Static methods class container used across the code.
@@ -109,12 +113,18 @@ public class Utils {
      */
     public static boolean labelMatches(String pattern, Computer slave) {
         Label configLabel = Label.get(pattern.toLowerCase());
-        ListIterator<LabelAtom> iterator = new ArrayList<LabelAtom>(slave.getNode().getAssignedLabels()).listIterator();
-        Set<LabelAtom> labels = new HashSet<LabelAtom>();
-        while (iterator.hasNext())
-        {
-            labels.add(new LabelAtom(iterator.next().getName().toLowerCase()));
-        }
+        Node node = slave.getNode();
+        if (node == null)
+            return false;
+        Set<LabelAtom> labels = node.getAssignedLabels();
+        if (labels == null)
+            return false;
+        // ListIterator<LabelAtom> iterator = new ArrayList<LabelAtom>(slave.getNode().getAssignedLabels()).listIterator();
+        // Set<LabelAtom> labels = new HashSet<LabelAtom>();
+        // while (iterator.hasNext())
+        // {
+        //     labels.add(new LabelAtom(iterator.next().getName().toLowerCase()));
+        // }
         return configLabel.matches(labels);
             // slave.getNode());
 
@@ -128,7 +138,7 @@ public class Utils {
      * @param obj Object to get verbose content
      * @return String with entire obj readed
      */
-    public static String StringFy(Object obj) {
+    public static String stringFy(Object obj) {
 
         StringBuilder result = new StringBuilder();
         try {
