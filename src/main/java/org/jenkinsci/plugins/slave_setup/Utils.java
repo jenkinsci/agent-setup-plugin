@@ -69,6 +69,8 @@ public class Utils {
             throws IOException, InterruptedException {
 
         Launcher launcher = root.createLauncher(listener);
+        if (enviroment == null)
+                enviroment = new EnvVars();
         if (launcher.isUnix()) {
             /*
              * Originally this plugin used only Shell(script) and
