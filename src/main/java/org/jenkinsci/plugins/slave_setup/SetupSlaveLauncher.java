@@ -1,21 +1,21 @@
 package org.jenkinsci.plugins.slave_setup;
 
 
+import java.io.IOException;
+
 import com.google.common.base.Strings;
+
+import org.kohsuke.stapler.DataBoundConstructor;
+
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.Launcher;
 import hudson.model.Descriptor;
 import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.DelegatingComputerLauncher;
 import hudson.slaves.SlaveComputer;
-import hudson.tasks.Shell;
 import jenkins.model.Jenkins;
-import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.io.IOException;
 
 /**
  * Implements the custom logic for an on-demand slave, executing scripts before connecting and after disconnecting
@@ -36,52 +36,53 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
 
     /**
      * Executes a script on the master node, with a bit of tracing.
+     * @param script String script to execute.
+     * @param listener TaskListener of the job.
      */
     private void execute(String script, TaskListener listener) throws IOException, InterruptedException {
         Jenkins jenkins = Jenkins.getInstance();
-
-        if (jenkins == null) {
-            listener.getLogger().println("Jenkins is not ready... doing nothing");
-            return;
-        }
-
         if (Strings.isNullOrEmpty(script)) {
             listener.getLogger().println("No script to be executed for this on-demand slave.");
             return;
         }
 
-            Launcher launcher = jenkins.getRootPath().createLauncher(listener);
-            Shell shell = new Shell(script);
-            FilePath root = jenkins.getRootPath();
-            FilePath scriptFile = shell.createScriptFile(root);
-            int r = launcher.launch().cmds(shell.buildCommandLine(scriptFile)).stdout(listener).join();
+        FilePath root = jenkins.getRootPath();
+        int r = Utils.multiOsExecutor(listener,script,root,null);
 
-            if (r != 0) {
-                throw new AbortException("Script failed with return code " + Integer.toString(r) + ".");
-            }
-
-            listener.getLogger().println("Script executed successfully.");
+        if (r != 0) {
+            throw new AbortException("Script failed with return code " + Integer.toString(r) + ".");
+        }
+        listener.getLogger().println("Script executed successfully.");
 
     }
 
-    /*
+    /**
      * Getters for Jelly
+     * @return Object startScript
+     * 
      */
     public String getStartScript() {
         return startScript;
     }
 
+    /**
+     * @return Object stopScript
+     */
     public String getStopScript() {
         return stopScript;
     }
 
-    /*
+    /**
      *  Delegated methods that plug the additional logic for on-demand slaves
+     * 
+     * @param computer SlaveComputer target to perform the launch.
+     * @param listener Job's TaskListener 
+     * 
      */
-
     @Override
     public void launch(SlaveComputer computer, TaskListener listener) throws IOException, InterruptedException {
         execute(startScript, listener);
+        listener.getLogger().println("Pre-Launch HERE Pls Print it " + String.valueOf(computer.isUnix()));
         super.launch(computer, listener);
     }
 
@@ -91,7 +92,7 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
 
         try {
             execute(stopScript, listener);
-        }  catch (Exception e) {
+        } catch (Exception e) {
             listener.getLogger().println("Failed executing script '" + stopScript + "'.");
             e.printStackTrace(listener.getLogger());
         }

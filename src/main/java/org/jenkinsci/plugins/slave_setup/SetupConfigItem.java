@@ -4,7 +4,6 @@ import antlr.ANTLRException;
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
-import hudson.model.Describable;
 import hudson.model.Descriptor;
 import hudson.model.labels.LabelAtom;
 import hudson.model.labels.LabelExpression;
@@ -18,8 +17,7 @@ import java.io.File;
  */
 public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
 
-
-    private String preLaunchScript;
+    public static final String DELIMITER = "¼";
 
     /**
      * the prepare script code
@@ -51,13 +49,14 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
      */
     private boolean prepareScriptExecuted = false;
 
+
     /**
      * Constructor uesd to create the setup config instance
      *
      */
     @DataBoundConstructor
-    public SetupConfigItem(String preLaunchScript, String prepareScript, File filesDir, String commandLine, boolean deployNow, String assignedLabelString) {
-        this.preLaunchScript = preLaunchScript;
+    public SetupConfigItem(String prepareScript, File filesDir, String commandLine, boolean deployNow, 
+    String assignedLabelString) {
         this.prepareScript = prepareScript;
         this.filesDir = filesDir;
         this.commandLine = commandLine;
@@ -71,13 +70,6 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     public SetupConfigItem() {
     }
 
-    public String getPreLaunchScript() {
-        return preLaunchScript;
-    }
-
-    public void setPreLaunchScript(String preLaunchScript) {
-        this.preLaunchScript = preLaunchScript;
-    }
 
     /**
      * Returns the prepare script code.
@@ -91,7 +83,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     /**
      * Sets the prepare script code
      *
-     * @param prepareScript
+     * @param prepareScript the script code as string
      */
     public void setPrepareScript(String prepareScript) {
         this.prepareScript = prepareScript;
@@ -100,7 +92,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     /**
      * Returns the directory containing the setup relevant files and sub directories
      *
-     * @return
+     * @return the directory as File 
      */
     public File getFilesDir() {
         return filesDir;
@@ -173,6 +165,8 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
 
     /**
      * Gets the textual representation of the assigned label as it was entered by the user.
+     * 
+     * @return assigned label as string
      */
     public String getAssignedLabelString() {
         if (StringUtils.isEmpty(this.assignedLabelString)) {
@@ -189,7 +183,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     }
 
     /**
-     * sets the assigned slaves' labels
+     * sets the assigned slave's labels
      *
      * @param assignedLabelString
      */
@@ -204,5 +198,23 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
         public String getDisplayName() {
             return "";
         }
+    }
+
+    /**
+     * Every ConfigItem have a unique identifier for content which will match with slave hashCode
+     * 
+     * @return unic value per all scripts
+     */
+    public int hashCode(){
+        return (prepareScript + filesDir + commandLine).hashCode();
+    }
+
+    /**
+     * Useful function to get same name as needs to be under slave cache.
+     * 
+     * @return String containing tag + DELIMITER +  hashCode()
+     */
+    public String remoteCache(){
+        return this.assignedLabelString + SetupConfigItem.DELIMITER + this.hashCode();
     }
 }
