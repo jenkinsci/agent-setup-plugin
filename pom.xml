@@ -13,7 +13,7 @@
     <packaging>hpi</packaging>
     <name>Jenkins Slave SetupPlugin</name>
     <url>http://wiki.jenkins-ci.org/display/JENKINS/Slave+Setup+Plugin</url>
-    <version>1.11</version>
+    <version>1.12-SNAPSHOT</version>
 
     <developers>
         <developer>
@@ -52,7 +52,7 @@
         <connection>scm:git:ssh://github.com/jenkinsci/slave-setup-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/slave-setup-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/slave-setup-plugin</url>
-      <tag>1.11</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <repositories>
