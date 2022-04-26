@@ -1,6 +1,6 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
-   Wrapper for other launch methods: executes a script (i.e. to provision a VM) before attempting to connect to the slave machine;
-    then launches the Jenkins slave with a launch method of your choice, and after disconnection executes another script
+   Wrapper for other launch methods: executes a script (i.e. to provision a VM) before attempting to connect to the agent machine;
+    then launches the Jenkins agent with a launch method of your choice, and after disconnection executes another script
     (i.e. for shutting down the VM).
 </j:jelly>
