@@ -1,10 +1,10 @@
 <div>
-    Specify the command to be executed on each slave before Jenkins
-    starts using the slave. This executes with the current directory set
+    Specify the command to be executed on each agent before Jenkins
+    starts using the agent. This executes with the current directory set
     to the copied script directory.
 
     <p>
-    Any non-zero exit code will prevent the slave from being used by Jenkins.
+    Any non-zero exit code will prevent the agent from being used by Jenkins.
 
     <p>
     Commands typed in here is executed as a shell script (by using the shell you specified
@@ -13,5 +13,5 @@
 
     <p>
     The script has the environment variables NODE_TO_SETUP_NAME and NODE_TO_SETUP_LABELS at its disposition.
-    They are set to the NODE_NAME and NODE_LABELS of the slave which is being launched.
+    They are set to the NODE_NAME and NODE_LABELS of the agent which is being launched.
 </div>
