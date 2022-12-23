@@ -123,7 +123,7 @@ public class SetupConfig extends GlobalConfiguration {
 
         Label l = Jenkins.getInstance().getLabel(value);
 
-        if (l.isEmpty()) {
+        if (l != null && l.isEmpty()) {
             for (LabelAtom a : l.listAtoms()) {
                 if (a.isEmpty()) {
                     LabelAtom nearest = LabelAtom.findNearest(a.getName());
