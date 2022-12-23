@@ -14,6 +14,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.File;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -117,8 +118,7 @@ public class SetupConfig extends GlobalConfiguration {
         try {
             Label.parseExpression(value);
         } catch (ANTLRException e) {
-            return FormValidation.error(e,
-                    Messages.AbstractProject_AssignedLabelString_InvalidBooleanExpression(e.getMessage()));
+            return FormValidation.error(e, MessageFormat.format("Invalid boolean expression: {0}", value));
         }
 
         Label l = Jenkins.getInstance().getLabel(value);
@@ -127,11 +127,12 @@ public class SetupConfig extends GlobalConfiguration {
             for (LabelAtom a : l.listAtoms()) {
                 if (a.isEmpty()) {
                     LabelAtom nearest = LabelAtom.findNearest(a.getName());
-                    return FormValidation.warning(Messages.AbstractProject_AssignedLabelString_NoMatch_DidYouMean(
-                            a.getName(), nearest.getDisplayName()));
+                    String guess = MessageFormat.format("No agent/cloud matches this label expression. Did you mean ‘{1}’ instead of ‘{0}’?",
+                                                      a.getName(), nearest.getDisplayName());
+                    return FormValidation.warning(guess);
                 }
             }
-            return FormValidation.warning(Messages.AbstractProject_AssignedLabelString_NoMatch());
+            return FormValidation.warning("No agent/cloud matches this label expression.");
         }
         return FormValidation.ok();
     }
