@@ -1,0 +1,4 @@
+<?jelly escape-by-default='true'?>
+<div>
+Prepares agents for build execution by copying files and executing scripts before the agent is used.
+</div>
