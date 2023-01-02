@@ -12,7 +12,7 @@
     <artifactId>slave-setup</artifactId>
     <packaging>hpi</packaging>
     <name>Jenkins Agent Setup Plugin</name>
-    <url>http://wiki.jenkins-ci.org/display/JENKINS/Slave+Setup+Plugin</url>
+    <url>https://github.com/jenkinsci/slave-setup-plugin</url>
     <version>1.12-SNAPSHOT</version>
 
     <developers>
