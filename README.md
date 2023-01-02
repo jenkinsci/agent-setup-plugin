@@ -58,7 +58,7 @@ online only when Jenkins needs it **(5)**.
 The figure below shows the configuration that you may want to use if
 your on-demand agent is an Amazon EC2 instance.
 
-<img src="docs/images/system-config.png" width=600>
+<img src="docs/images/system-config.png" width="80%">
 
 **NOTE:** if your jobs need the agent to be up for being scheduled, you
 may end up in a situation where no jobs are scheduled because the agents
