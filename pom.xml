@@ -11,7 +11,7 @@
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>slave-setup</artifactId>
     <packaging>hpi</packaging>
-    <name>Jenkins Agent Setup Plugin</name>
+    <name>Agent Setup</name>
     <url>https://github.com/jenkinsci/slave-setup-plugin</url>
     <version>${revision}${changelist}</version>
 

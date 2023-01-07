@@ -1,11 +1,11 @@
-# Agent Setup Plugin
+# Agent Setup plugin
 
 This plugin prepares agents for build execution by letting you copy
 files and execute scripts before the agents are used.
 
 It also allows you to start and stop agents on demand from the controller.
 
-# Label-based setup
+## Label-based setup
 
 The agent setup plugin gets executed for an agent, if the given label
 expression matches and on:
@@ -37,15 +37,15 @@ not marked as online, so ill-prepared agents never enter the agent pool.
 This provides the administrator of the system an opportunity to prepare
 agents to the state suitable for build execution. This works
 particularly well in conjunction with tools like Puppet that has
-higher-level support for this kind of task.  
+higher-level support for this kind of task.
 
-# On-demand agent setup 
+## On-demand agent setup
 
 This plugin also provides you a per-agent "start" and "stop" script
 configuration specific for on-demand agents.
 
 Once installed, you will have an additional **"Launch method" (1)** for
-this case: 
+this case:
 
 this one lets you specify the "Start" **(2)** and "Stop" **(3)**
 scripts, and on top of that you will be able to **specify the
@@ -71,7 +71,7 @@ instead of the agent) is disabled or not working. See the [Git plugin
 documentation](https://plugins.jenkins.io/git/)
 on how to get the "Fast remote polling" working.
 
-# Version History
+## Version History
 
 [GitHub releases](https://github.com/jenkinsci/slave-setup-plugin/releases) provides changelogs for recent releases.
 
