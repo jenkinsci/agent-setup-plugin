@@ -75,4 +75,4 @@ on how to get the "Fast remote polling" working.
 
 [GitHub releases](https://github.com/jenkinsci/slave-setup-plugin/releases) provides changelogs for recent releases.
 
-[CHANGELOG](CHANGELOG.md) provides changelogs for releases before 2017.
+[CHANGELOG](https://github.com/jenkinsci/slave-setup-plugin/blob/slave-setup-1.12/CHANGELOG.md) provides changelogs for releases before 2014.
