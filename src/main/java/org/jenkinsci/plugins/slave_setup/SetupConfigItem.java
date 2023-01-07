@@ -185,7 +185,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     /**
      * sets the assigned slave's labels
      *
-     * @param assignedLabelString
+     * @param assignedLabelString labels to be assigned to the agent
      */
     public void setAssignedLabelString(String assignedLabelString) {
         this.assignedLabelString = assignedLabelString;
