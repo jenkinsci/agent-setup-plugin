@@ -13,7 +13,7 @@
     <packaging>hpi</packaging>
     <name>Jenkins Agent Setup Plugin</name>
     <url>https://github.com/jenkinsci/slave-setup-plugin</url>
-    <version>1.12-SNAPSHOT</version>
+    <version>1.12</version>
 
     <developers>
         <developer>
@@ -50,7 +50,7 @@
         <connection>scm:git:https://github.com/jenkinsci/slave-setup-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:jenkinsci/slave-setup-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/slave-setup-plugin</url>
-      <tag>HEAD</tag>
+      <tag>slave-setup-1.12</tag>
   </scm>
 
     <repositories>
