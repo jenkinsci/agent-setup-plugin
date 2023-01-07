@@ -1,0 +1,2 @@
+_extends: .github
+tag-template: slave-setup-$NEXT_MINOR_VERSION
