@@ -8,7 +8,6 @@
         <relativePath />
     </parent>
 
-    <groupId>io.jenkins.plugins</groupId>
     <artifactId>slave-setup</artifactId>
     <packaging>hpi</packaging>
     <name>Agent Setup</name>
