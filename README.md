@@ -5,6 +5,18 @@ files and execute scripts before the agents are used.
 
 It also allows you to start and stop agents on demand from the controller.
 
+## Untested changes
+
+Release 1.10 (April 2016) is the **most recent release of this plugin** to the Jenkins update center.
+All changes after the 1.10 tag have not been seen by Jenkins users.
+Before those changes are released, they need to be tested for compatibility and correctness.
+
+One of the untested changes modified the maven coordinates of the plugin.
+That change prevented the delivery of release 1.11, 1.12, and 1.13 to the Jenkins update center.
+That change has been reverted, but no further testing has been performed to check the rest of the modified functionality.
+
+If someone adopts this plugin and performs that testing, then this section should be removed from the documentation so that the README can be used as the plugin documentation on plugins.jenkins.io.
+
 ## Label-based setup
 
 The agent setup plugin gets executed for an agent, if the given label
