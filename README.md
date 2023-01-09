@@ -7,7 +7,7 @@ It also allows you to start and stop agents on demand from the controller.
 
 ## Untested changes
 
-Release 1.10 (April 2016) is the **most recent release of this plugin** to the Jenkins update center.
+[Release 1.10 (April 2016)](https://github.com/jenkinsci/slave-setup-plugin/releases/tag/1.10) is the **most recent release of this plugin** to the Jenkins update center.
 All changes after the 1.10 tag have not been seen by Jenkins users.
 Before those changes are released, they need to be tested for compatibility and correctness.
 
