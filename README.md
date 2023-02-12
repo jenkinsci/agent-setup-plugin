@@ -12,7 +12,7 @@ expression matches and on:
 
 -   Jenkins startup as an agent gets connected.
 -   Save of the Jenkins configuration page if the "deploy on save now"
-    checkox is checked.
+    checkbox is checked.
 -   New or re-connection of an agent.
 
 When you install this plugin, it adds a new system configuration section
@@ -21,11 +21,11 @@ following properties:
 
 | Property                | Description                                                                                                                                                                                                                            | Example                                   |
 |-------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
-| pre-launch script       | Name of a pre-launch script relative to the **jenkins home directory**. This can be used to start the agent machine, before Jenkins tries to ssh it.                                                                                   | ./prelaunch.sh                            |
+| pre-launch script       | Name of a pre-launch script relative to the **Jenkins home directory**. This can be used to start the agent machine, before Jenkins tries to ssh it.                                                                                   | ./prelaunch.sh                            |
 | prepare script          | Name of a prepare script relative to the **jenkins home directory** (not the setup files directory, this has changed in v1.6). This can be used to aggregate files into the setup files directory, patch them, pack them, and so on... | ./prepare\_files.sh                       |
 | setup files directory   | Absolute path to the directory that will be copied to the agent.  The contents of this directory are copied to the home directory of the agent.                                                                                        | /var/jenkins/devAgentFiles                |
 | setup script after copy | Name of the script that should be executed on the agent after all files are copied. The script should be part of the files to copy.                                                                                                    | ./agent\_setup.sh                         |
-| deploy on save now      | If checked, this agent setup item will be executed on save of the jenkins configuration page.                                                                                                                                          | checked                                   |
+| deploy on save now      | If checked, this agent setup item will be executed on save of the Jenkins configuration page.                                                                                                                                          | checked                                   |
 | Label Expression        | Like jobs an agent setup item can be configured to be executed only on the agents that match the Label Expression.                                                                                                                      | "agents", "!selenium", "agent1 OR agent2" |
 
 ![](docs/images/agent-setup.png)
