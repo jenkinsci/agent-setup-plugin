@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.SystemUtils;
 
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -249,7 +248,6 @@ public class Components {
             try {
                 Components manager = new Components(slave);
                 manager.doConfig();
-                manager.clearTemporally();
             } catch (Exception ex) {
                 Components.info(String.format("Failed to configure %s%nErr:%s", slave.getName(), ex.getMessage()));
                 succeded = false;
@@ -275,7 +273,6 @@ public class Components {
             try {
                 Components manager = new Components(slave);
                 manager.doSetup();
-                manager.clearTemporally();
             } catch (Exception ex) {
                 Components.info(String.format("Failed to configure %s%nErr:%s", slave.getName(), ex.getMessage()));
                 succeded = false;
@@ -314,39 +311,6 @@ public class Components {
         }
         // Add to cache in order to prevent reinstall this version.
         this.addCache(installInfo.remoteCache());
-    }
-
-    /**
-     * Only works on Unix Operating Systems, this will use some unix commands to
-     * clear temporally data
-     * 
-     * If file has more than 5 minutes in the last modified tag, it will be removed.
-     * Only will remove files which name is jenkins
-     * 
-     * This function require at least (find) binary to be installed
-     * 
-     * @throws InterruptedException Broken pipe.
-     * @throws IOException          IO error accessing remotePath
-     * @throws AbortException       User close/Cancelled
-     * 
-     */
-    public void clearTemporally() throws AbortException, IOException, InterruptedException {
-
-        String clearTmp = "find /tmp -type f -atime +10 -delete -iname *jenkins*.sh -maxdepth 0";
-        EnvVars environ = SetupDeployer.createEnvVarsForComputer(this.slave);
-
-        if (this.remotePath.getRemote().startsWith("/")) {
-            // Clear slave temporally data
-            Components.info("Clearing temporally data on " + this.slave.getName());
-            validateResponse(Utils.multiOsExecutor(Components.listener, clearTmp, this.remotePath, environ));
-        }
-
-        if (SystemUtils.IS_OS_UNIX) {
-            // Clear master temporally data
-            Components.info("Clearing temporally data on jenkins master");
-            validateResponse(SetupDeployer.executeScriptOnMaster(Components.listener, clearTmp, environ));
-        }
-        Components.debug("Finished temporal data removed");
     }
 
     /**
