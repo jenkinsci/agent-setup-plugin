@@ -43,8 +43,6 @@ public class ComputerListenerImpl extends ComputerListener {
 
         manager.doSetup();
         Components.debug("Setup Ended");
-
-        manager.clearTemporally();
     }
 
 }
