@@ -11,7 +11,7 @@
     <artifactId>slave-setup</artifactId>
     <packaging>hpi</packaging>
     <name>Agent Setup</name>
-    <url>https://github.com/jenkinsci/slave-setup-plugin</url>
+    <url>https://github.com/jenkinsci/agent-setup-plugin</url>
     <version>${revision}${changelist}</version>
 
     <developers>
@@ -62,7 +62,7 @@
     <properties>
         <revision>1.17</revision>
         <changelist>-SNAPSHOT</changelist>
-        <gitHubRepo>jenkinsci/slave-setup-plugin</gitHubRepo>
+        <gitHubRepo>jenkinsci/agent-setup-plugin</gitHubRepo>
         <jenkins.version>2.387.3</jenkins.version>
     </properties>
 
