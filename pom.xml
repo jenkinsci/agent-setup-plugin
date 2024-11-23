@@ -63,7 +63,8 @@
         <revision>1.17</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/agent-setup-plugin</gitHubRepo>
-        <jenkins.version>2.387.3</jenkins.version>
+        <jenkins.baseline>2.387</jenkins.baseline>
+        <jenkins.version>${jenkins.baseline}.3</jenkins.version>
     </properties>
 
     <pluginRepositories>
