@@ -1,24 +1,22 @@
 package org.jenkinsci.plugins.slave_setup;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.commons.lang.StringUtils;
-
 import hudson.EnvVars;
 import hudson.FilePath;
 import hudson.Util;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.TaskListener;
+import java.io.File;
+import java.io.IOException;
 import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * Executes a deployment to all or a single node of the given fileset and
  * executes the command line.
  *
  * @author Frederik Fromm
- * 
+ *
  *         /// Modified by @author ByteHeed
  * @author Mikel Royo Gutierrez
  * @author Aaron Giovannini
@@ -34,9 +32,9 @@ public class SetupDeployer {
 
     /**
      * Copy localPath into remotePath and return boolean if operation succeded
-     * 
+     *
      * @return Boolean , true if everything went OK
-     * 
+     *
      * @throws InterruptedException BrokenPipe
      * @throws IOException IO error while accesing disk
      */
@@ -45,28 +43,29 @@ public class SetupDeployer {
             Components.info("copying files from " + localPath);
             int tmp = new FilePath(localPath).copyRecursiveTo(remotePath);
             return tmp == 0;
-        } else
-            return false;
+        } else return false;
     }
 
     /**
      * Checks if this script should be executed on the target computer. If the
      * computer is not set (on save of the jenkins configuration page) or if the
      * label expression of the config matches with the given computer.
-     * 
+     *
      */
     public static boolean checkLabelsForComputerOrNull(Computer c, SetupConfigItem item) {
-        return c == null || item.getAssignedLabelString().equals("") || Utils.labelMatches(item.getAssignedLabelString(), c);
+        return c == null
+                || item.getAssignedLabelString().equals("")
+                || Utils.labelMatches(item.getAssignedLabelString(), c);
     }
 
     /**
      * Executes the given script on the given slave independently of their OSs.
-     * 
+     *
      * @param listener   TaskListener of the job
      * @param script     String script to execute
      * @param root       Slave rootPath as jenkins.FilePath
      * @param enviroment Enviroment variables for this job on this node. From SetupDeployer.createEnvVars(L)
-     * 
+     *
      * @throws InterruptedException BrokenPipe
      * @throws IOException IO error while accesing disk
      */
@@ -76,7 +75,7 @@ public class SetupDeployer {
     }
 
     /**
-     * Executes the given script on Jenkins MasterNode with his envVars logging with given listener 
+     * Executes the given script on Jenkins MasterNode with his envVars logging with given listener
      * @param script     Script to execute on Master
      * @param listener   Job's listener handle
      * @param enviroment Enviroment's EnvVars from
@@ -96,7 +95,6 @@ public class SetupDeployer {
             return 0xffffff0A;
         }
     }
-    
 
     /**
      * Gets the current enviroment variables for the given computer

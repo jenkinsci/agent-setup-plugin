@@ -1,24 +1,23 @@
 package org.jenkinsci.plugins.slave_setup;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import hudson.FilePath;
 import hudson.model.*;
 import hudson.slaves.DumbSlave;
 import hudson.slaves.OfflineCause;
 import hudson.slaves.SlaveComputer;
 import hudson.util.IOUtils;
-import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
-import org.junit.Test;
-import org.jvnet.hudson.test.HudsonTestCase;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import jenkins.model.Jenkins;
+import org.apache.commons.lang.StringUtils;
+import org.junit.Test;
+import org.jvnet.hudson.test.HudsonTestCase;
 
 /**
  * @author Frederik Fromm
@@ -127,12 +126,12 @@ public class SetupDeployerTest extends HudsonTestCase {
 
     /**
      * @throws IOException
-     * 
+     *
      */
     @Test
     public void testDeployToComputers() throws IOException {
         // File testFile = new File("/tmp/setup.txt");
-        
+
         File testFile = new File("src/test/resources/files/setup.txt");
         testFile.createNewFile();
         Components.doSetups(Utils.getAllActiveSlaves());
@@ -182,7 +181,6 @@ public class SetupDeployerTest extends HudsonTestCase {
         assertFirstLineEquals(sci3Files.listFiles(), "prep03=v03");
     }
 
-
     private void assertFirstLineEquals(File[] expectedSciFiles, String expected) {
         assertEquals(1, expectedSciFiles.length);
         try {
@@ -201,7 +199,8 @@ public class SetupDeployerTest extends HudsonTestCase {
 
         // config items with no label should always be executed.
         for (int i = 0; i < 3; i++) {
-            assertTrue(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(i).getComputer(), noLabelItem));
+            assertTrue(SetupDeployer.checkLabelsForComputerOrNull(
+                    this.slaves.get(i).getComputer(), noLabelItem));
         }
 
         SetupConfigItem oneLabelItem = new SetupConfigItem();
@@ -210,18 +209,19 @@ public class SetupDeployerTest extends HudsonTestCase {
         // config items with foo label should be executed on slave 0 and 1 but not on 2.
         assertTrue(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(0).getComputer(), oneLabelItem));
         assertTrue(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(1).getComputer(), oneLabelItem));
-        assertFalse(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(2).getComputer(), oneLabelItem));
+        assertFalse(
+                SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(2).getComputer(), oneLabelItem));
 
         SetupConfigItem oneLabelItemWithWhitespace = new SetupConfigItem();
         oneLabelItemWithWhitespace.setAssignedLabelString("foo ");
 
         // config items with foo label should be executed on slave 0 and 1 but not on 2.
-        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(0).getComputer(),
-                oneLabelItemWithWhitespace));
-        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(1).getComputer(),
-                oneLabelItemWithWhitespace));
-        assertFalse(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(2).getComputer(),
-                oneLabelItemWithWhitespace));
+        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(
+                this.slaves.get(0).getComputer(), oneLabelItemWithWhitespace));
+        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(
+                this.slaves.get(1).getComputer(), oneLabelItemWithWhitespace));
+        assertFalse(SetupDeployer.checkLabelsForComputerOrNull(
+                this.slaves.get(2).getComputer(), oneLabelItemWithWhitespace));
     }
 
     private File prepSCIFile(String name) {

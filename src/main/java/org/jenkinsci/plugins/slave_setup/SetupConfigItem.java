@@ -7,10 +7,9 @@ import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 import hudson.model.labels.LabelAtom;
 import hudson.model.labels.LabelExpression;
+import java.io.File;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.io.File;
 
 /**
  * Represents a setup config for one set of labels. It may have its own prepare script, files to copy and command line.
@@ -49,14 +48,13 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
      */
     private boolean prepareScriptExecuted = false;
 
-
     /**
      * Constructor uesd to create the setup config instance
      *
      */
     @DataBoundConstructor
-    public SetupConfigItem(String prepareScript, File filesDir, String commandLine, boolean deployNow, 
-    String assignedLabelString) {
+    public SetupConfigItem(
+            String prepareScript, File filesDir, String commandLine, boolean deployNow, String assignedLabelString) {
         this.prepareScript = prepareScript;
         this.filesDir = filesDir;
         this.commandLine = commandLine;
@@ -67,9 +65,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     /**
      * Default constructor
      */
-    public SetupConfigItem() {
-    }
-
+    public SetupConfigItem() {}
 
     /**
      * Returns the prepare script code.
@@ -92,7 +88,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
     /**
      * Returns the directory containing the setup relevant files and sub directories
      *
-     * @return the directory as File 
+     * @return the directory as File
      */
     public File getFilesDir() {
         return filesDir;
@@ -165,7 +161,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
 
     /**
      * Gets the textual representation of the assigned label as it was entered by the user.
-     * 
+     *
      * @return assigned label as string
      */
     public String getAssignedLabelString() {
@@ -202,19 +198,19 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
 
     /**
      * Every ConfigItem have a unique identifier for content which will match with slave hashCode
-     * 
+     *
      * @return unic value per all scripts
      */
-    public int hashCode(){
+    public int hashCode() {
         return (prepareScript + filesDir + commandLine).hashCode();
     }
 
     /**
      * Useful function to get same name as needs to be under slave cache.
-     * 
+     *
      * @return String containing tag + DELIMITER +  hashCode()
      */
-    public String remoteCache(){
+    public String remoteCache() {
         return this.assignedLabelString + SetupConfigItem.DELIMITER + this.hashCode();
     }
 }
