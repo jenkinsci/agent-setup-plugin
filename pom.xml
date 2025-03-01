@@ -10,7 +10,7 @@
   </parent>
 
   <artifactId>slave-setup</artifactId>
-  <version>${revision}${changelist}</version>
+  <version>${changelist}</version>
   <packaging>hpi</packaging>
   <name>Agent Setup</name>
   <url>https://github.com/jenkinsci/agent-setup-plugin</url>
@@ -31,8 +31,7 @@
   </scm>
 
   <properties>
-    <revision>1.17</revision>
-    <changelist>-SNAPSHOT</changelist>
+    <changelist>999999-SNAPSHOT</changelist>
     <gitHubRepo>jenkinsci/agent-setup-plugin</gitHubRepo>
     <jenkins.baseline>2.479</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
