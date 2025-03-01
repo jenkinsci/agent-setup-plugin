@@ -7,12 +7,6 @@ import hudson.model.*;
 import hudson.model.labels.LabelAtom;
 import hudson.util.FormValidation;
 import hudson.util.LogTaskListener;
-import jenkins.model.GlobalConfiguration;
-import jenkins.model.Jenkins;
-import net.sf.json.JSONObject;
-import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest2;
-
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -20,6 +14,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
+import net.sf.json.JSONObject;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest2;
 
 /**
  * Keeps track of the configuration of slave_setup execution.
@@ -49,10 +48,10 @@ public class SetupConfig extends GlobalConfiguration {
      * GlobalConfiguration override.
      * Begin this SetupConfig initialization binding configJson, seting up Listener and performing
      * this config execution on all activeSlaves.
-     * 
+     *
      * @param req StaplerRequest2 from jenkins classes
      * @param json JSONObject from jenkins classes
-     * 
+     *
      * @return Boolean if the config setup for all the slaves went correctly if true.
      */
     @Override
@@ -63,11 +62,10 @@ public class SetupConfig extends GlobalConfiguration {
         Components.setLogger(new LogTaskListener(LOGGER, Level.ALL));
 
         return Components.doConfigSetups(Utils.getAllActiveSlaves());
-
     }
 
     /**
-     * Get this SetupConfig class 
+     * Get this SetupConfig class
      * @return class SetupConfig
      */
     public static SetupConfig get() {
@@ -76,11 +74,11 @@ public class SetupConfig extends GlobalConfiguration {
 
     /**
      * Autocompletion string for jelly to autocomplete node label.
-     * 
+     *
      * @param value String to be compared and autocompleted.
-     * 
+     *
      * @return AutoCompletionCandidates for the given value checking all Jenkins instance labels.
-     * 
+     *
      */
     public AutoCompletionCandidates doAutoCompleteAssignedLabelString(@QueryParameter String value) {
         AutoCompletionCandidates c = new AutoCompletionCandidates();
@@ -127,8 +125,9 @@ public class SetupConfig extends GlobalConfiguration {
             for (LabelAtom a : l.listAtoms()) {
                 if (a.isEmpty()) {
                     LabelAtom nearest = LabelAtom.findNearest(a.getName());
-                    String guess = MessageFormat.format("No agent/cloud matches this label expression. Did you mean ‘{1}’ instead of ‘{0}’?",
-                                                      a.getName(), nearest.getDisplayName());
+                    String guess = MessageFormat.format(
+                            "No agent/cloud matches this label expression. Did you mean ‘{1}’ instead of ‘{0}’?",
+                            a.getName(), nearest.getDisplayName());
                     return FormValidation.warning(guess);
                 }
             }

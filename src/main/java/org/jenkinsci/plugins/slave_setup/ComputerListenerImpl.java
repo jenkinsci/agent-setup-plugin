@@ -1,13 +1,12 @@
 package org.jenkinsci.plugins.slave_setup;
 
-import java.io.IOException;
-
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Computer;
 import hudson.model.TaskListener;
 import hudson.remoting.Channel;
 import hudson.slaves.ComputerListener;
+import java.io.IOException;
 
 /**
  * @author Kohsuke Kawaguchi
@@ -16,15 +15,15 @@ import hudson.slaves.ComputerListener;
 public class ComputerListenerImpl extends ComputerListener {
 
     /**
-     * 
+     *
      * Prepares the slave before it gets online by copying the given content in root
      * and executing the configured setup script.
-     * 
+     *
      * @param c        the computer to set up
      * @param channel  not used
      * @param root     the root of the slave
      * @param listener log listener
-     * 
+     *
      * @throws IOException IO error accessing file on disk (cache)
      * @throws InterruptedException Pipe Broken
      */
@@ -44,5 +43,4 @@ public class ComputerListenerImpl extends ComputerListener {
         manager.doSetup();
         Components.debug("Setup Ended");
     }
-
 }

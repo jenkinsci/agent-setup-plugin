@@ -1,12 +1,6 @@
 package org.jenkinsci.plugins.slave_setup;
 
-
-import java.io.IOException;
-
 import com.google.common.base.Strings;
-
-import org.kohsuke.stapler.DataBoundConstructor;
-
 import hudson.AbortException;
 import hudson.Extension;
 import hudson.FilePath;
@@ -15,7 +9,9 @@ import hudson.model.TaskListener;
 import hudson.slaves.ComputerLauncher;
 import hudson.slaves.DelegatingComputerLauncher;
 import hudson.slaves.SlaveComputer;
+import java.io.IOException;
 import jenkins.model.Jenkins;
+import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
  * Implements the custom logic for an on-demand slave, executing scripts before connecting and after disconnecting
@@ -26,9 +22,7 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
     private final String stopScript;
 
     @DataBoundConstructor
-    public SetupSlaveLauncher(ComputerLauncher launcher,
-                              String startScript,
-                              String stopScript) {
+    public SetupSlaveLauncher(ComputerLauncher launcher, String startScript, String stopScript) {
         super(launcher);
         this.startScript = startScript;
         this.stopScript = stopScript;
@@ -47,19 +41,18 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
         }
 
         FilePath root = jenkins.getRootPath();
-        int r = Utils.multiOsExecutor(listener,script,root,null);
+        int r = Utils.multiOsExecutor(listener, script, root, null);
 
         if (r != 0) {
             throw new AbortException("Script failed with return code " + Integer.toString(r) + ".");
         }
         listener.getLogger().println("Script executed successfully.");
-
     }
 
     /**
      * Getters for Jelly
      * @return Object startScript
-     * 
+     *
      */
     public String getStartScript() {
         return startScript;
@@ -74,10 +67,10 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
 
     /**
      *  Delegated methods that plug the additional logic for on-demand slaves
-     * 
+     *
      * @param computer SlaveComputer target to perform the launch.
-     * @param listener Job's TaskListener 
-     * 
+     * @param listener Job's TaskListener
+     *
      */
     @Override
     public void launch(SlaveComputer computer, TaskListener listener) throws IOException, InterruptedException {
@@ -104,6 +97,4 @@ public class SetupSlaveLauncher extends DelegatingComputerLauncher {
             return "Start and stop this node on-demand";
         }
     }
-
 }
-
