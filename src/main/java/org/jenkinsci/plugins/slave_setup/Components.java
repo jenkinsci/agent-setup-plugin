@@ -200,8 +200,8 @@ public class Components {
                 this.closeConfigStream();
                 Components.info("Install " + item.getAssignedLabelString() + " succeded");
             } else
-                Components.info(String.format("%s slave have last version of %s", slave.getName(),
-                        item.getAssignedLabelString()));
+                Components.info("%s slave have last version of %s".formatted(slave.getName(),
+                    item.getAssignedLabelString()));
 
         }
 
@@ -249,7 +249,7 @@ public class Components {
                 Components manager = new Components(slave);
                 manager.doConfig();
             } catch (Exception ex) {
-                Components.info(String.format("Failed to configure %s%nErr:%s", slave.getName(), ex.getMessage()));
+                Components.info("Failed to configure %s%nErr:%s".formatted(slave.getName(), ex.getMessage()));
                 succeded = false;
             }
         }
@@ -274,7 +274,7 @@ public class Components {
                 Components manager = new Components(slave);
                 manager.doSetup();
             } catch (Exception ex) {
-                Components.info(String.format("Failed to configure %s%nErr:%s", slave.getName(), ex.getMessage()));
+                Components.info("Failed to configure %s%nErr:%s".formatted(slave.getName(), ex.getMessage()));
                 succeded = false;
             }
         }
@@ -337,7 +337,7 @@ public class Components {
     private void closeConfigStream() throws IOException, InterruptedException {
         if (getCache().size() > 0) {
             Components.debug(
-                    String.format("Updating %s with%n%s", this.configFile, StringUtils.join(getCache(), "\r\n")));
+                "Updating %s with%n%s".formatted(this.configFile, StringUtils.join(getCache(), "\r\n")));
             configFile.write(StringUtils.join(cache, this.remoteSeparator).trim(), "UTF-8");
         } else
             Components.debug("Nothing to update on slave, stream closed");
