@@ -11,7 +11,7 @@ import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 import java.io.File;
 import java.text.MessageFormat;
@@ -50,13 +50,13 @@ public class SetupConfig extends GlobalConfiguration {
      * Begin this SetupConfig initialization binding configJson, seting up Listener and performing
      * this config execution on all activeSlaves.
      * 
-     * @param req StaplerRequest from jenkins classes
+     * @param req StaplerRequest2 from jenkins classes
      * @param json JSONObject from jenkins classes
      * 
      * @return Boolean if the config setup for all the slaves went correctly if true.
      */
     @Override
-    public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+    public boolean configure(StaplerRequest2 req, JSONObject json) throws FormException {
         req.bindJSON(this, json);
         save();
 
