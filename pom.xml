@@ -14,37 +14,6 @@
     <url>https://github.com/jenkinsci/agent-setup-plugin</url>
     <version>${revision}${changelist}</version>
 
-    <developers>
-        <developer>
-            <id>peppe</id>
-            <name>Giuseppe Landolfi</name>
-            <email>giuseppe.landolfi@gmail.com</email>
-        </developer>
-     </developers>
-
-    <contributors>
-        <contributor>
-            <name>Mikel Royo</name>
-            <email>mikel.royo@byteheed.com</email>
-            <organization>ByteHeed</organization>
-            <organizationUrl>https://www.byteheed.com</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>Europe/Madrid</timezone>
-        </contributor>
-        <contributor>
-            <name>Aaron Giovannini</name>
-            <email>aaron.giovannini@byteheed.com</email>
-            <organization>ByteHeed</organization>
-            <organizationUrl>https://www.byteheed.com</organizationUrl>
-            <roles>
-                <role>Code Analyst</role>
-            </roles>
-            <timezone>Europe/Madrid</timezone>
-        </contributor>
-    </contributors>
-
     <scm>
         <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
         <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
