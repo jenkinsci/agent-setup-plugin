@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.88</version>
+        <version>5.7</version>
         <relativePath />
     </parent>
 
@@ -13,37 +13,6 @@
     <name>Agent Setup</name>
     <url>https://github.com/jenkinsci/agent-setup-plugin</url>
     <version>${revision}${changelist}</version>
-
-    <developers>
-        <developer>
-            <id>peppe</id>
-            <name>Giuseppe Landolfi</name>
-            <email>giuseppe.landolfi@gmail.com</email>
-        </developer>
-     </developers>
-
-    <contributors>
-        <contributor>
-            <name>Mikel Royo</name>
-            <email>mikel.royo@byteheed.com</email>
-            <organization>ByteHeed</organization>
-            <organizationUrl>https://www.byteheed.com</organizationUrl>
-            <roles>
-                <role>Developer</role>
-            </roles>
-            <timezone>Europe/Madrid</timezone>
-        </contributor>
-        <contributor>
-            <name>Aaron Giovannini</name>
-            <email>aaron.giovannini@byteheed.com</email>
-            <organization>ByteHeed</organization>
-            <organizationUrl>https://www.byteheed.com</organizationUrl>
-            <roles>
-                <role>Code Analyst</role>
-            </roles>
-            <timezone>Europe/Madrid</timezone>
-        </contributor>
-    </contributors>
 
     <scm>
         <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
@@ -63,7 +32,7 @@
         <revision>1.17</revision>
         <changelist>-SNAPSHOT</changelist>
         <gitHubRepo>jenkinsci/agent-setup-plugin</gitHubRepo>
-        <jenkins.baseline>2.387</jenkins.baseline>
+        <jenkins.baseline>2.479</jenkins.baseline>
         <jenkins.version>${jenkins.baseline}.3</jenkins.version>
     </properties>
 
