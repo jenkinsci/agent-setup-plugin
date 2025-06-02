@@ -1,7 +1,9 @@
 package org.jenkinsci.plugins.slave_setup;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.FilePath;
 import hudson.model.*;
@@ -11,83 +13,83 @@ import hudson.slaves.SlaveComputer;
 import hudson.util.IOUtils;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import org.junit.Test;
-import org.jvnet.hudson.test.HudsonTestCase;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
 /**
  * @author Frederik Fromm
  */
-public class SetupDeployerTest extends HudsonTestCase {
+@WithJenkins
+class SetupDeployerTest {
 
     private List<DumbSlave> slaves;
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    private JenkinsRule j;
 
-        this.slaves = new ArrayList<DumbSlave>();
+    @BeforeEach
+    void setUp(JenkinsRule rule) throws Exception {
+        j = rule;
 
-        this.slaves.add(this.createSlave("foo", null));
-        this.slaves.add(this.createSlave("foo bar", null));
-        this.slaves.add(this.createSlave("bar", null));
+        slaves = new ArrayList<>();
+
+        slaves.add(j.createSlave("foo", null));
+        slaves.add(j.createSlave("foo bar", null));
+        slaves.add(j.createSlave("bar", null));
 
         for (int i = 0; i < 3; i++) {
-            SlaveComputer c = this.slaves.get(i).getComputer();
+            SlaveComputer c = slaves.get(i).getComputer();
             c.connect(false).get(); // wait until it's connected
-            if (c.isOffline()) {
-                fail("Slave failed to go online: " + c.getLog());
-            }
+
+            assertFalse(c.isOffline(), "Slave failed to go online: " + c.getLog());
         }
-        Components.setLogger(this.createTaskListener());
+        Components.setLogger(j.createTaskListener());
         Components.enableDebug();
     }
 
     @Test
-    public void testGetAllActiveSlaves() throws Exception {
-        SetupDeployer setupDeployer = new SetupDeployer();
-
+    void testGetAllActiveSlaves() throws Exception {
         List<Computer> allActiveSlaves = Utils.getAllActiveSlaves();
         assertNotNull(allActiveSlaves);
         assertEquals(3, allActiveSlaves.size());
 
-        this.slaves.get(1).getComputer().disconnect(OfflineCause.create(Messages._Hudson_NodeBeingRemoved()));
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        slaves.get(1)
+                .getComputer()
+                .disconnect(OfflineCause.create(Messages._Hudson_NodeBeingRemoved()))
+                .get(3, TimeUnit.SECONDS);
 
         allActiveSlaves = Utils.getAllActiveSlaves();
         assertEquals(2, allActiveSlaves.size());
 
-        this.slaves.get(0).getComputer().disconnect(OfflineCause.create(Messages._Hudson_NodeBeingRemoved()));
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        slaves.get(0)
+                .getComputer()
+                .disconnect(OfflineCause.create(Messages._Hudson_NodeBeingRemoved()))
+                .get(3, TimeUnit.SECONDS);
 
         allActiveSlaves = Utils.getAllActiveSlaves();
         assertEquals(1, allActiveSlaves.size());
     }
 
     @Test
-    public void testDeployToComputer() {
+    void testDeployToComputer() throws Exception {
         // TODO: Update test to use copyFiles
 
-        this.slaves.get(0).getComputer().disconnect(OfflineCause.create(Messages._Hudson_NodeBeingRemoved()));
-        this.slaves.get(2).getComputer().disconnect(OfflineCause.create(Messages._Hudson_NodeBeingRemoved()));
-
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        slaves.get(0)
+                .getComputer()
+                .disconnect(OfflineCause.create(Messages._Hudson_NodeBeingRemoved()))
+                .get(3, TimeUnit.SECONDS);
+        slaves.get(2)
+                .getComputer()
+                .disconnect(OfflineCause.create(Messages._Hudson_NodeBeingRemoved()))
+                .get(3, TimeUnit.SECONDS);
 
         List<Computer> activeSlaves = Utils.getAllActiveSlaves();
         assertEquals(1, activeSlaves.size());
@@ -96,40 +98,27 @@ public class SetupDeployerTest extends HudsonTestCase {
 
         FilePath root = slave.getNode().getRootPath();
 
-        TaskListener taskListener = this.createTaskListener();
+        TaskListener taskListener = j.createTaskListener();
 
-        try {
-            SetupConfig config = createConfig(null);
-            SetupDeployer.executeScriptOnMaster(taskListener, "", null);
-            // setupDeployer.executePrepareScripts(slave, config, taskListener, new
-            // ArrayList<String>());
-            // File testFile = new File("tmp/setup.txt");
+        SetupConfig config = createConfig(null);
+        SetupDeployer.executeScriptOnMaster(taskListener, "", null);
 
-            File testFile = new File("src/test/resources/files");
-            testFile.createNewFile();
+        // SetupDeployer.executePrepareScripts(slave, config, taskListener, new ArrayList<>());
+        // File testFile = new File("tmp/setup.txt");
 
-            SetupDeployer.copyFiles(testFile, root);
-            // SetupDeployer.deployToComputer(slave, root, taskListener, config);
-            SetupDeployer.executeScriptOnSlave(taskListener, "", root, null);
+        File testFile = new File("src/test/resources/files");
+        testFile.createNewFile();
 
-            FilePath[] files = slave.getNode().getRootPath().list("setup.txt"); // root.list ?
-            assertEquals(1, files.length);
+        SetupDeployer.copyFiles(testFile, root);
+        // SetupDeployer.deployToComputer(slave, root, taskListener, config);
+        SetupDeployer.executeScriptOnSlave(taskListener, "", root, null);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            fail(e.getMessage());
-        }
+        FilePath[] files = slave.getNode().getRootPath().list("setup.txt"); // root.list ?
+        assertEquals(1, files.length);
     }
 
-    /**
-     * @throws IOException
-     *
-     */
     @Test
-    public void testDeployToComputers() throws IOException {
+    void testDeployToComputers() throws Exception {
         // File testFile = new File("/tmp/setup.txt");
 
         File testFile = new File("src/test/resources/files/setup.txt");
@@ -137,10 +126,10 @@ public class SetupDeployerTest extends HudsonTestCase {
         Components.doSetups(Utils.getAllActiveSlaves());
     }
 
-    // Test disabled because it fails on newer Jenkins releases
-    // Not willing to spend the effort to understand why it fails
-    // @Test
-    public void failingTestExecutePrepareScripts() throws Exception {
+    @Test
+    @Disabled(
+            "Test disabled because it fails on newer Jenkins releases.  Not willing to spend the effort to understand why it fails ")
+    void failingTestExecutePrepareScripts() throws Exception {
         SetupConfig setupConfig = new SetupConfig();
 
         File sci1Files = prepSCIFile("sci1");
@@ -164,15 +153,13 @@ public class SetupDeployerTest extends HudsonTestCase {
         sci3.setFilesDir(sci3Files);
         setupConfig.getSetupConfigItems().add(sci3);
 
-        TaskListener taskListener = this.createTaskListener();
+        TaskListener taskListener = j.createTaskListener();
 
         for (SetupConfigItem item : setupConfig.getSetupConfigItems()) {
             SetupDeployer.executeScriptOnMaster(taskListener, item.getPrepareScript(), null);
         }
 
-        // SetupDeployer setupDeployer = new SetupDeployer();
-        // setupDeployer.executePrepareScripts(null, setupConfig, taskListener, new
-        // ArrayList<String>());
+        // SetupDeployer.executePrepareScripts(null, setupConfig, taskListener, new ArrayList<>());
 
         assertFirstLineEquals(sci1Files.listFiles(), "prep01=v01");
 
@@ -181,62 +168,46 @@ public class SetupDeployerTest extends HudsonTestCase {
         assertFirstLineEquals(sci3Files.listFiles(), "prep03=v03");
     }
 
-    private void assertFirstLineEquals(File[] expectedSciFiles, String expected) {
+    private void assertFirstLineEquals(File[] expectedSciFiles, String expected) throws Exception {
         assertEquals(1, expectedSciFiles.length);
-        try {
-            String line = IOUtils.readFirstLine(new FileInputStream(expectedSciFiles[0]), "UTF-8");
-            assertEquals(expected, line);
-        } catch (IOException e) {
-            fail(e.getMessage());
-        }
+        String line = IOUtils.readFirstLine(new FileInputStream(expectedSciFiles[0]), StandardCharsets.UTF_8.name());
+        assertEquals(expected, line);
     }
 
     @Test
-    public void testCheckLabels() {
-        SetupDeployer setupDeployer = new SetupDeployer();
-
+    void testCheckLabels() {
         SetupConfigItem noLabelItem = new SetupConfigItem();
 
         // config items with no label should always be executed.
         for (int i = 0; i < 3; i++) {
-            assertTrue(SetupDeployer.checkLabelsForComputerOrNull(
-                    this.slaves.get(i).getComputer(), noLabelItem));
+            assertTrue(SetupDeployer.checkLabelsForComputerOrNull(slaves.get(i).getComputer(), noLabelItem));
         }
 
         SetupConfigItem oneLabelItem = new SetupConfigItem();
         oneLabelItem.setAssignedLabelString("foo");
 
         // config items with foo label should be executed on slave 0 and 1 but not on 2.
-        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(0).getComputer(), oneLabelItem));
-        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(1).getComputer(), oneLabelItem));
-        assertFalse(
-                SetupDeployer.checkLabelsForComputerOrNull(this.slaves.get(2).getComputer(), oneLabelItem));
+        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(slaves.get(0).getComputer(), oneLabelItem));
+        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(slaves.get(1).getComputer(), oneLabelItem));
+        assertFalse(SetupDeployer.checkLabelsForComputerOrNull(slaves.get(2).getComputer(), oneLabelItem));
 
         SetupConfigItem oneLabelItemWithWhitespace = new SetupConfigItem();
         oneLabelItemWithWhitespace.setAssignedLabelString("foo ");
 
         // config items with foo label should be executed on slave 0 and 1 but not on 2.
-        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(
-                this.slaves.get(0).getComputer(), oneLabelItemWithWhitespace));
-        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(
-                this.slaves.get(1).getComputer(), oneLabelItemWithWhitespace));
-        assertFalse(SetupDeployer.checkLabelsForComputerOrNull(
-                this.slaves.get(2).getComputer(), oneLabelItemWithWhitespace));
+        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(slaves.get(0).getComputer(), oneLabelItemWithWhitespace));
+        assertTrue(SetupDeployer.checkLabelsForComputerOrNull(slaves.get(1).getComputer(), oneLabelItemWithWhitespace));
+        assertFalse(
+                SetupDeployer.checkLabelsForComputerOrNull(slaves.get(2).getComputer(), oneLabelItemWithWhitespace));
     }
 
-    private File prepSCIFile(String name) {
+    private File prepSCIFile(String name) throws Exception {
         // Computer computer = Jenkins.MasterComputer.currentComputer();
         // FilePath rootPath = computer.getNode().getRootPath();
-        FilePath rootPath = Jenkins.getInstance().getRootPath();
+        FilePath rootPath = Jenkins.get().getRootPath();
 
-        try {
-            FilePath tempDir = rootPath.createTempDir(name, null);
-            name = tempDir.getRemote();
-        } catch (IOException e) {
-            e.printStackTrace(); // To change body of catch statement use File | Settings | File Templates.
-        } catch (InterruptedException e) {
-            e.printStackTrace(); // To change body of catch statement use File | Settings | File Templates.
-        }
+        FilePath tempDir = rootPath.createTempDir(name, null);
+        name = tempDir.getRemote();
 
         File sciFiles = new File(name);
         assertTrue(sciFiles.canRead() && sciFiles.isDirectory());
@@ -258,7 +229,7 @@ public class SetupDeployerTest extends HudsonTestCase {
             item.setAssignedLabelString(label);
         }
 
-        List<SetupConfigItem> setupConfigItems = new ArrayList<SetupConfigItem>();
+        List<SetupConfigItem> setupConfigItems = new ArrayList<>();
         setupConfigItems.add(item);
 
         setupConfig.setSetupConfigItems(setupConfigItems);
