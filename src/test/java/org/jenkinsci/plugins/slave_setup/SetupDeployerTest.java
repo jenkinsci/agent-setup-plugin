@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.FilePath;
+import hudson.Util;
 import hudson.model.*;
 import hudson.slaves.DumbSlave;
 import hudson.slaves.OfflineCause;
@@ -18,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -225,7 +225,7 @@ class SetupDeployerTest {
         assertTrue(setupFiles.canRead() && setupFiles.isDirectory());
         SetupConfigItem item = new SetupConfigItem();
         item.setFilesDir(setupFiles);
-        if (StringUtils.isNotBlank(label)) {
+        if (Util.fixEmptyAndTrim(label) != null) {
             item.setAssignedLabelString(label);
         }
 

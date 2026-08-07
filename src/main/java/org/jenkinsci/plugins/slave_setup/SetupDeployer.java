@@ -9,7 +9,6 @@ import hudson.model.TaskListener;
 import java.io.File;
 import java.io.IOException;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Executes a deployment to all or a single node of the given fileset and
@@ -39,7 +38,7 @@ public class SetupDeployer {
      * @throws IOException IO error while accesing disk
      */
     public static boolean copyFiles(File localPath, FilePath remotePath) throws IOException, InterruptedException {
-        if (localPath != null && StringUtils.isNotBlank(localPath.getPath())) {
+        if (localPath != null && Util.fixEmptyAndTrim(localPath.getPath()) != null) {
             Components.info("copying files from " + localPath);
             int tmp = new FilePath(localPath).copyRecursiveTo(remotePath);
             return tmp == 0;

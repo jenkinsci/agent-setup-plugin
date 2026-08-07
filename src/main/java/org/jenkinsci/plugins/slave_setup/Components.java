@@ -3,6 +3,7 @@ package org.jenkinsci.plugins.slave_setup;
 import hudson.AbortException;
 import hudson.EnvVars;
 import hudson.FilePath;
+import hudson.Util;
 import hudson.model.Computer;
 import hudson.model.Node;
 import hudson.model.TaskListener;
@@ -10,7 +11,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * We are going to store in cache the master delimiter and each node delimiter
@@ -283,7 +283,7 @@ public class Components {
     private void doDeploy(SetupConfigItem installInfo) throws IOException, InterruptedException {
         EnvVars enviroment = SetupDeployer.createEnvVarsForComputer(this.slave);
 
-        if (!StringUtils.isEmpty(installInfo.getPrepareScript())) {
+        if (Util.fixEmpty(installInfo.getPrepareScript()) != null) {
             // If isn't empty script will execute on master
             validateResponse(SetupDeployer.executeScriptOnMaster(
                     Components.listener, installInfo.getPrepareScript(), enviroment));
@@ -293,7 +293,7 @@ public class Components {
         // Copy files from master to slave (only if option contains some path)
         SetupDeployer.copyFiles(installInfo.getFilesDir(), remotePath);
 
-        if (!StringUtils.isEmpty(installInfo.getCommandLine())) {
+        if (Util.fixEmpty(installInfo.getCommandLine()) != null) {
             // If we had slave script, will call now.
             validateResponse(
                     Utils.multiOsExecutor(Components.listener, installInfo.getCommandLine(), remotePath, enviroment));
@@ -325,8 +325,8 @@ public class Components {
      */
     private void closeConfigStream() throws IOException, InterruptedException {
         if (getCache().size() > 0) {
-            Components.debug("Updating %s with%n%s".formatted(this.configFile, StringUtils.join(getCache(), "\r\n")));
-            configFile.write(StringUtils.join(cache, this.remoteSeparator).trim(), "UTF-8");
+            Components.debug("Updating %s with%n%s".formatted(this.configFile, String.join("\r\n", getCache())));
+            configFile.write(String.join(this.remoteSeparator, cache).trim(), "UTF-8");
         } else Components.debug("Nothing to update on slave, stream closed");
     }
 
