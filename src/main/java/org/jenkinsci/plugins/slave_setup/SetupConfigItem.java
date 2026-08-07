@@ -8,7 +8,6 @@ import hudson.model.Descriptor;
 import hudson.model.labels.LabelAtom;
 import hudson.model.labels.LabelExpression;
 import java.io.File;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
@@ -165,7 +164,7 @@ public class SetupConfigItem extends AbstractDescribableImpl<SetupConfigItem> {
      * @return assigned label as string
      */
     public String getAssignedLabelString() {
-        if (StringUtils.isEmpty(this.assignedLabelString)) {
+        if (Util.fixEmpty(this.assignedLabelString) == null) {
             return "";
         }
 
